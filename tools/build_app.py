@@ -8,7 +8,7 @@ import sys
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 APP = ROOT / "app"
-JS_ORDER = ["data.js", "sujet_data.js", "js/engine.js", "js/state.js", "js/runtime.js", "js/cables.js", "js/zoom.js", "js/faces.js", "js/board.js", "js/checks.js",
+JS_ORDER = ["data.js", "sujet_data.js", "js/engine.js", "js/state.js", "js/runtime.js", "js/cables.js", "js/zoom.js", "js/feedback.js", "js/faces.js", "js/board.js", "js/checks.js",
             "js/interactions.js", "js/scope.js", "js/gbf.js", "js/psu.js", "js/dock.js", "js/lesson.js", "js/main.js"]
 
 
@@ -17,6 +17,12 @@ def main():
     subprocess.run([sys.executable, str(ROOT / "tools" / "sujet_crops.py")], check=True)   # extraits du vrai sujet si les PDF sont présents, sinon SUJET = null
     css = (APP / "css/base.css").read_text(encoding="utf-8") + "\n" + (APP / "css/app.css").read_text(encoding="utf-8")
     js = "\n".join("// ==== %s ====\n%s" % (f, (APP / f).read_text(encoding="utf-8")) for f in JS_ORDER)
+    import datetime
+    try:
+        rev = subprocess.run(["git", "rev-parse", "--short", "HEAD"], cwd=ROOT, capture_output=True, text=True).stdout.strip()
+    except Exception:
+        rev = ""
+    js = js.replace("__BUILD__", datetime.date.today().isoformat() + (" " + rev if rev else ""))
     js = js.replace("</script>", "<\\/script>")
     html = (APP / "index.html").read_text(encoding="utf-8")
     html = html.replace("/*@@CSS@@*/", css).replace("<!--@@BOARD_SVG@@-->", (APP / "partials/board_svg.html").read_text(encoding="utf-8")).replace("/*@@JS@@*/", js)

@@ -27,6 +27,14 @@ function setupBoardInteractions() {
   });
 
   const masterSvg = document.getElementById("master-board-svg");
+  masterSvg.addEventListener("click", e => {
+    const hid = e.target.dataset && e.target.dataset.lead; if (!hid) return;
+    if (state.tool === "delete") return;
+    if (state.tool !== "wire") { state.tool = "wire"; state.armedRef = null; Cables.cancel(); document.querySelectorAll(".t-btn").forEach(b => b.classList.toggle("active", b.dataset.tool === "wire")); if (typeof syncToolbar === "function") syncToolbar(); }
+    if (state.firstHole) { handleHoleClick(hid); return; }   // un fil est déjà en cours : le bout du cordon sert d'arrivée
+    state.pendingColor = LEADS[hid].col;
+    handleHoleClick(hid);
+  });
   masterSvg.addEventListener("pointermove", e => {
     if (!state.firstHole) return;
     const pt = masterSvg.createSVGPoint();
@@ -83,7 +91,7 @@ function setupBoardInteractions() {
       const h1 = state.firstHole, h2 = hid;
       if (h1 !== h2) {
         if (state.tool === "wire") {
-          state.placedWires.push({ n: state.placedWires.length + 1, de: h1, vers: h2, couleur: state.wireColor });
+          state.placedWires.push({ n: state.placedWires.length + 1, de: h1, vers: h2, couleur: state.pendingColor || state.wireColor });
         } else if (state.tool === "resistor") {
           const val = state.resistorVal;
           const rname = state.armedRef && /^R/.test(state.armedRef) ? state.armedRef : nextName("R", state.placedComps, "name");
@@ -103,7 +111,7 @@ function setupBoardInteractions() {
   }
 
   function resetSel() {
-    state.firstHole = null;
+    state.firstHole = null; state.pendingColor = null;
     selMarker.style.display = "none";
     rubberband.style.display = "none";
   }

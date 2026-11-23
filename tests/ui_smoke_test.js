@@ -80,6 +80,22 @@ setTimeout(() => {
   click("T1a10"); click("T1a12"); ev(`state.resistorVal=330`); click("T1a20"); click("T1a22");
   ok(ev(`state.placedComps.map(c => c.name + "=" + c.ohm).join(",")`) === "R1=4700,R2=330", "deux résistances libres (R1, R2) : " + ev(`state.placedComps.map(c => c.name + "=" + c.ohm).join(",")`));
 
+  // 6b. petits câbles qui pendent de la plaque + retour d'erreur
+  ev(`Lesson.clearWiring(); renderPlacedElements(); state.tool="wire";`);
+  ok(w.document.querySelectorAll(".lead-hit").length === 7, "7 petits câbles pendent sous âme / blindage / VB / VC / MASSE");
+  const leadClick = hid => w.document.querySelector(`.lead-hit[data-lead="${hid}"]`).dispatchEvent(new w.MouseEvent("click", { bubbles: true }));
+  leadClick("BNC1.core"); click("T1g53");
+  ok(ev(`state.placedWires.map(x => x.de + ">" + x.vers + ":" + x.couleur).join()`) === "BNC1.core>T1g53:rouge", "bout du cordon → trou : fil posé, couleur du cordon : " + ev(`state.placedWires.map(x => x.de + ">" + x.vers + ":" + x.couleur).join()`));
+  ok(w.document.querySelectorAll(".lead-hit").length === 6, "le cordon branché ne pend plus");
+  leadClick("BNC1.shield"); leadClick("VB.main");
+  ok(ev(`state.placedWires.length`) === 2, "un cordon peut aussi être enfiché sur un autre (2 fils)");
+  ev(`Feedback.openForm()`);
+  ok(w.document.getElementById("fb").classList.contains("show"), "formulaire « Signaler une erreur » ouvert");
+  const u = ev(`Feedback.issueUrl({montage:"tp2-B1-inverseur", type:"Erreur dans un montage (fil, résistance, trou, câble)", description:"R2 faux", etat:Feedback.stateSummary(), version:"test"})`);
+  ok(/issues\/new\?template=retour-montage\.yml/.test(u) && /montage=tp2-B1-inverseur/.test(u) && u.length < 7000, "lien d'Issue pré-rempli (" + u.length + " caractères)");
+  ev(`Feedback.openHelp()`); ok(w.document.getElementById("help").classList.contains("show"), "aide ouverte");
+  ev(`document.querySelectorAll(".modal.show").forEach(m => m.classList.remove("show"))`);
+
   // 7. sujet + zoom
   ev(`Lesson.load("tp2-B2-non-inverseur")`);
   const imgs = w.document.querySelectorAll("#p-sujet figure.sj img").length;

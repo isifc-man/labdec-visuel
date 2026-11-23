@@ -1,0 +1,40 @@
+name: Retour sur un montage / une erreur
+description: Une erreur dans un montage, un écran d'appareil, une question ou un bug (le bouton « Signaler une erreur » de l'app pré-remplit ce formulaire).
+title: "[retour] "
+labels: ["retour-montage"]
+body:
+  - type: input
+    id: montage
+    attributes:
+      label: Montage concerné
+      description: Ex. tp2-B1-inverseur
+    validations:
+      required: false
+  - type: dropdown
+    id: type
+    attributes:
+      label: Type de retour
+      options:
+        - Erreur dans un montage (fil, résistance, trou, câble)
+        - Écran d'appareil incorrect
+        - Énoncé ou question
+        - Bug de l'application
+        - Idée / amélioration
+    validations:
+      required: true
+  - type: textarea
+    id: description
+    attributes:
+      label: Ce qui ne va pas, et ce que tu attendais
+      description: Si tu peux, dis ce que la fiche technique, le sujet ou le banc réel donne.
+    validations:
+      required: true
+  - type: textarea
+    id: etat
+    attributes:
+      label: État de ton câblage (rempli automatiquement)
+      render: text
+  - type: input
+    id: version
+    attributes:
+      label: Version de l'app

@@ -14,6 +14,9 @@ Ouvrir le lien de l'application (GitHub Pages) ou, en local : `python tools/buil
 - **Non simulé** : TP3 (74LS00, 74LS74), LED. L'écran le dit au lieu d'inventer un signal.
 - Pas de bruit, de quantification, de tolérance des composants.
 
+## Signaler une erreur
+Bouton **⚑ Signaler une erreur** en haut à droite de l'app : il ouvre un formulaire GitHub (Issue) déjà rempli avec le montage, ton câblage et la version. L'auteur rassemble les retours avec `python tools/feedback.py`.
+
 ## Corriger une erreur
 Les montages sont des fichiers YAML dans `montages/`. Voir `docs/MODIFIER_APRES_VERIF.md` (quel fichier ouvrir selon l'erreur) puis :
 ```

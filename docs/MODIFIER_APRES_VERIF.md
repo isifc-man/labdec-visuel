@@ -28,6 +28,12 @@ predictions/*.yaml┘                                             ├─► tool
 
 ⚠ **Point faible connu** : `hardware/behavior.yaml` documente ces paramètres mais **le moteur ne le lit pas encore** : les valeurs sont recopiées dans `engine.js › DEFAULTS`. Si on corrige l'un, il faut corriger l'autre (à unifier : étape suivante).
 
+## 1 bis. Recueillir les retours des utilisateurs
+```
+python tools/feedback.py            # liste les Issues « retour-montage » par montage
+```
+Chaque retour pré-remplit le montage, le type d'erreur, l'état du câblage et la version. Après correction : une ligne dans `CORRECTIONS.md`, `git commit -m "... Fixes #N"` ferme l'Issue.
+
 ## 2. Reconstruire et vérifier (3 commandes)
 ```
 cd LABDEC_VISUEL

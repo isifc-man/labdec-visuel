@@ -8,6 +8,7 @@ window.addEventListener("DOMContentLoaded", () => {
   Cables.init();
   if (window.ResizeObserver) { const rz = new ResizeObserver(() => Cables.redraw()); ["lv-centre", "instruments", "boardzone"].forEach(i => rz.observe(document.getElementById(i))); }
   Zoom.init();
+  Feedback.init();
   Dock.init();
   Lesson.init();
   setupToolbar();

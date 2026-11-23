@@ -190,8 +190,33 @@ function renderPlacedElements() {
   });
   document.getElementById("svg-chips").innerHTML = cSvg;
 
+  renderLeads();
   updatePlacedTable();
   updateElectricalChecklist();
   triggerScopeRedraw();
 }
 
+
+// 3. PETITS CÂBLES DE LA PLAQUE : sous chaque âme / blindage / douille, un cordon pend déjà ; il suffit d'enficher son bout dans un trou.
+// Clic sur le bout qui pend, puis clic sur le trou : le fil est posé avec la couleur du cordon (le cordon disparaît tant qu'un fil part de ce trou).
+const LEADS = {
+  "BNC1.core": { dx: -16, col: "rouge", nom: "âme BNC 1" }, "BNC1.shield": { dx: 16, col: "noir", nom: "blindage BNC 1" },
+  "BNC2.core": { dx: -16, col: "orange", nom: "âme BNC 2" }, "BNC2.shield": { dx: 16, col: "noir", nom: "blindage BNC 2" },
+  "VB.main": { dx: 0, col: "bleu", nom: "douille VB (−15 V)" }, "VC.main": { dx: 0, col: "rouge", nom: "douille VC (+15 V)" }, "MASSE.main": { dx: 0, col: "turquoise", nom: "douille MASSE (0 V)" },
+};
+function renderLeads() {
+  const svg = document.getElementById("master-board-svg"); if (!svg) return;
+  let g = document.getElementById("svg-leads");
+  if (!g) { g = document.createElementNS("http://www.w3.org/2000/svg", "g"); g.id = "svg-leads"; svg.appendChild(g); }
+  let s = "";
+  Object.entries(LEADS).forEach(([hid, L]) => {
+    const h = HOLE_MAP.get(hid); if (!h) return;
+    if (state.placedWires.some(w => w.de === hid || w.vers === hid)) return;
+    const col = WIRE_COLORS[L.col], ex = h.x + L.dx, ey = h.y + 56;
+    const d = `M ${h.x},${h.y} C ${h.x},${h.y + 22} ${ex + L.dx * 1.2},${h.y + 22} ${ex},${ey}`;
+    s += `<g class="lead"><path d="${d}" fill="none" stroke="#0b0e14" stroke-width="7" stroke-linecap="round"/><path d="${d}" fill="none" stroke="${col}" stroke-width="4.5" stroke-linecap="round"/>` +
+         `<circle cx="${ex}" cy="${ey}" r="6" fill="${col}" stroke="#fff" stroke-width="1.8"/>` +
+         `<circle class="lead-hit" data-lead="${hid}" cx="${ex}" cy="${ey}" r="11" fill="transparent"><title>${L.nom} : clique ce bout, puis le trou de la plaque où l'enficher</title></circle></g>`;
+  });
+  g.innerHTML = s;
+}

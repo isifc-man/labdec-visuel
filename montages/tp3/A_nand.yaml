@@ -159,5 +159,5 @@ instruments:
       texte: 'Meas : Cr-cr voies 1 et 2, fréquence ; curseurs si besoin'
 pannes:
 - 'LED jamais allumée : à l''envers (patte longue côté R) ou puce non alimentée (broches 7 et 14).'
-- 'Y ≈ 1,0 V avec LED : normal (charge) ; ≈ 3,4 V à vide (VOH typ.).'
+- 'Y haut ≈ 3,2 V avec la LED (elle charge la sortie) ; ≈ 3,4 V à vide (VOH typ.) ; Y bas ≈ 0,1 V.'
 - 'Rien ne marche : strap/lien +5 V (fil 9) oublié → le rail N1 n''est pas alimenté.'

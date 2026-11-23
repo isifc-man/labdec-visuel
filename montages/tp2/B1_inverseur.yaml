@@ -159,7 +159,7 @@ etapes_montage:
 - 'Pars du montage A : retire le fil 5 (boucle) et le fil 1 ; garde alim et puce.'
 - 'R1 (1 kΩ) : T1f53 → T1h49 ; R2 (20 kΩ) : T1e53 → T1e48.'
 - 'Fil 5 : T1f49 → T1d53 (broche 2 vers R2). Fil 6 : broche 3 à la masse. Fil 1 : Ve vers R1 (T1g53).'
-- 'GBF 0,4 Vpp : avec Av = −20, Vs = 8 Vpp ; à 5 Vpp la sortie saturerait à ±13 V.'
+- 'GBF 0,4 Vpp : avec Av = −20, Vs = 8 Vpp ; à 5 Vpp la sortie saturerait (≈ ±12,5 V ; ±12 à ±13,5 V selon la puce et la charge).'
 precedent: montages/tp2/A_suiveur.yaml
 instruments:
   psu:
@@ -222,6 +222,6 @@ instruments:
       cible: btn_meas
       texte: 'Meas : Cr-cr voies 1 et 2, fréquence ; curseurs si besoin'
 pannes:
-- 'Vs écrêtée plate à ±13 V : Ve trop grand (maximum ≈ 0,6 Vpp pour Av = −20).'
+- 'Vs écrêtée plate vers ±12,5 V : Ve trop grand (maximum ≈ 0,6 Vpp pour Av = −20).'
 - 'Vs = Ve : R2 absente ou en court-circuit.'
 - 'Vs ≈ 0 : broche 3 pas à la masse (fil 6).'

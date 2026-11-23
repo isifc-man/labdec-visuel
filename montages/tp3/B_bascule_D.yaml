@@ -161,7 +161,7 @@ etapes_montage:
 - 'Alim : broche 14 → +5 V, broche 7 → 0 V (fils 8, 9). CLR et PRE à +5 V (fils 5, 6) — OBLIGATOIRE.'
 - 'Fil 7 : Q̄ → D (T1g49 ↔ T1g45). R 330 Ω T1h46 → T1h52, LED T1i52/T1i56.'
 - 'Horloge : SYNC du GBF → BNC 1 → broche 3. Voie 2 sur Q (T1i46).'
-- 'tpd : base de temps 20 ns/div, trigger voie 1 front montant, mesurer à 1,5 V : ≈ 15–25 ns (datasheet 25 ns typ).'
+- 'tpd : base de temps 20 ns/div, trigger voie 1 front montant, mesurer à 1,5 V : front montant de Q ≈ 13 ns typ. (25 max), descendant ≈ 25 ns typ. (40 max) d''après la fiche TI.'
 precedent: montages/tp3/A2_seuils.yaml
 instruments:
   psu:

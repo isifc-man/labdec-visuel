@@ -197,6 +197,6 @@ instruments:
       cible: btn_meas
       texte: 'Meas : Cr-cr voies 1 et 2, fréquence ; curseurs si besoin'
 pannes:
-- 'Vs = 0 ou collée à ±13 V : puce non alimentée ou alim inversée (broches 4 et 7), ou boucle (fil 5) oubliée.'
+- 'Vs = 0 ou collée vers ±12,5 V : puce non alimentée ou alim inversée (broches 4 et 7), ou boucle (fil 5) oubliée.'
 - 'Rien du tout : sorties de l''alim sur OFF, ou 0 V commun (strap G) absent.'
 - 'Ve ≈ 10 Vpp au lieu de 5 : charge GBF sur 50 Ω au lieu de High Z.'

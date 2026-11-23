@@ -88,11 +88,21 @@ def render(docs, boxes):
     return "data:image/jpeg;base64," + base64.b64encode(buf.getvalue()).decode(), out.size
 
 
+def keep_existing(why):
+    """Sans PDF (ex. GitHub Actions) : on garde app/sujet_data.js s'il contient déjà des extraits."""
+    if OUT.exists() and "= null" not in OUT.read_text(encoding="utf-8")[:40]:
+        print(f"sujet : {why} -> extraits existants conservés ({OUT.stat().st_size // 1024} Ko)")
+        return True
+    return False
+
+
 def main(preview_dir=None):
     try:
         import fitz  # noqa: F401
         import PIL  # noqa: F401
     except Exception:
+        if keep_existing("PyMuPDF/Pillow absents"):
+            return
         OUT.write_text("const SUJET = null;\n", encoding="utf-8")
         print("sujet : PyMuPDF/Pillow absents -> pas d'extraits (SUJET = null)")
         return
@@ -103,6 +113,8 @@ def main(preview_dir=None):
             import fitz
             docs[tp] = fitz.open(p)
     if len(docs) < 3:
+        if keep_existing("PDF absents"):
+            return
         OUT.write_text("const SUJET = null;\n", encoding="utf-8")
         print(f"sujet : PDF trouvés pour TP {sorted(docs)} seulement -> pas d'extraits (SUJET = null)")
         return

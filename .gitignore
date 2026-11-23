@@ -5,4 +5,3 @@ app/data.js
 .DS_Store
 __pycache__/
 *.pyc
-app/sujet_data.js

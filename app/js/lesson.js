@@ -110,7 +110,7 @@ const Lesson = (() => {
     const r = m.reglages || {}, pcs = pieceList(m), hasSujet = pcs.length > 0;
     const annexes = hasSujet ? Object.values(SUJET.annexes).flat().map(k => [k, SUJET.pieces[k]]) : [];
     const head = hasSujet
-      ? `<h3>${esc(m.titre)}</h3><p class="mut">Extraits du sujet de TP (clique une image pour l'agrandir).</p>` + pcs.map(figure).join("") +
+      ? `<h3>${esc(m.titre)}</h3><p class="mut">Extraits du sujet de TP d'électronique (ISIFC 1A), reproduits pour l'entraînement ; clique une image pour l'agrandir. Retrait sur demande de l'établissement.</p>` + pcs.map(figure).join("") +
         `<details><summary>Annexes du sujet (GBF, oscilloscope, platine, alimentation)</summary>${annexes.map(figure).join("")}</details>` +
         `<details><summary>Texte du montage (fichier YAML)</summary><p>${esc(m.objectif)}</p></details>`
       : `<h3>${esc(m.titre)}</h3><p>${esc(m.objectif)}</p><p class="mut">Les extraits du sujet (captures) ne sont pas inclus dans cette version : texte tiré des fichiers du montage.</p>`;

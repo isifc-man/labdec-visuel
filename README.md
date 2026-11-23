@@ -25,7 +25,7 @@ python tools/build_app.py && node tests/engine_test.js
 Merci de noter chaque correction dans `CORRECTIONS.md` et de proposer une Pull Request.
 
 ## Extraits du sujet
-Les captures du sujet de TP (énoncés, annexes) appartiennent à l'établissement et **ne sont pas dans ce dépôt**. Si les PDF `Sujet TP 1/2/3` sont présents au moment du build (`LABDEC_SUJET_DIR=/dossier`), `tools/sujet_crops.py` les découpe et les intègre à ta copie locale ; sinon l'app affiche le texte des fichiers montage.
+L'app affiche des captures du sujet de TP (énoncés, schémas, annexes appareils) pour s'entraîner dans les mêmes conditions. Ce contenu vient de l'établissement : il est inclus à titre d'entraînement (`app/sujet_data.js`, généré par `tools/sujet_crops.py` à partir des PDF) et sera **retiré sur simple demande de l'établissement**. Le code, lui, est sous licence MIT ci-dessous ; la licence ne couvre pas ces extraits.
 
 ## Licence
 MIT (voir `LICENSE`).

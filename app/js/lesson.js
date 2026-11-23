@@ -151,7 +151,7 @@ const Lesson = (() => {
       dec.map(([a, b]) => `<div class="row">${E12_ALL.filter(v => v >= a && v <= b).map(v => `<span class="chip" data-r="" data-v="${v}">${ohmLabel(v)}</span>`).join("")}</div>`).join("") +
       `<div class="row"><span class="chip" data-r="" data-v="1000000">1 MΩ</span></div></details>` +
       `<details><summary><b>Puces</b></summary><div class="row">${Object.keys(CHIPS_LIB).map(k => `<span class="chip" data-chip="" data-m="${k}">${k} (${CHIPS_LIB[k].dip} broches)</span>`).join("")}</div></details>` +
-      `<details open><summary><b>Câbles d'appareils</b></summary><p class="mut">Clique une prise sur la face d'un appareil, puis la douille de la plaque (BNC 1, BNC 2, VB, VC, MASSE) ou une autre prise d'appareil. BNC avec BNC, banane avec banane. Le T du GBF : deux câbles sur la sortie 1.</p>` +
+      `<details open><summary><b>Câbles d'appareils</b></summary><p class="mut">Clique une prise sur la face d'un appareil, puis la douille de la plaque (BNC 1, BNC 2, VB, VC, MASSE, banane rouge / noire de gauche) ou une autre prise d'appareil. BNC avec BNC, banane avec banane. Le T du GBF : deux câbles sur la sortie 1.</p>` +
       `<div class="row"><button class="btn" id="btn-cable-tool">outil « Câble d'appareil »</button></div></details>`;
   }
   function bindBox(el) {

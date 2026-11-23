@@ -127,3 +127,11 @@ body.zoom-on #cable-layer{display:none}
 #p-compo .row{gap:4px}
 #p-compo summary{font-size:12px}
 #p-compo .cp{border-bottom:1px solid var(--line);padding-bottom:4px;margin-bottom:6px}
+
+/* ---- outils dans le menu de gauche (les câbles ne passent plus dessus) ---- */
+#lv-nav #boardbar{display:flex;flex-direction:column;align-items:stretch;gap:8px;padding:0 10px;border:0}
+#lv-nav .tool-group{display:grid;grid-template-columns:1fr 1fr;gap:5px}
+#lv-nav .t-btn{padding:5px 4px;font-size:12px}
+#lv-nav .t-btn[data-tool=cable]{grid-column:1/-1}
+#lv-nav #boardbar>div:nth-child(2){display:flex;gap:7px;flex-wrap:wrap;justify-content:center}
+#boardstatus{display:flex;gap:14px;align-items:center;flex-wrap:wrap;padding:6px 10px;border-bottom:1px solid var(--line);min-height:1.4em}

@@ -8,7 +8,7 @@ const Cables = (() => {
   const isDev = e => DEV.test(e);
   const kindOf = e => isDev(e) ? (/^psu\./.test(e) ? "banane" : "bnc") : (/^BNC/.test(e) ? "bnc" : "banane");
   const connOfHole = id => { const h = HOLE_MAP.get(id); return h && h.t === "conn" ? id.split(".")[0] : null; };
-  const CONN_COL = { VB: "#3b82f6", VC: "#ef4444", MASSE: "#14b8a6" };
+  const CONN_COL = { VB: "#3b82f6", VC: "#ef4444", MASSE: "#14b8a6", BANANE_ROUGE: "#ef4444", BANANE_NOIRE: "#1f2937" };
   const sameEnds = (a, b, c, d) => (a === c && b === d) || (a === d && b === c);
   const LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
@@ -17,7 +17,7 @@ const Cables = (() => {
     if (names[e]) return names[e];
     let m = e.match(/^psu\.ch(\d)_(plus|moins)$/);
     if (m) return `alim voie ${m[1]} ${m[2] === "plus" ? "+" : "−"}`;
-    return { BNC1: "BNC 1 de la plaque", BNC2: "BNC 2 de la plaque", VB: "douille VB", VC: "douille VC", MASSE: "douille MASSE" }[e] || e;
+    return { BANANE_ROUGE: "banane rouge de la plaque (gauche)", BANANE_NOIRE: "banane noire de la plaque (gauche)", BNC1: "BNC 1 de la plaque", BNC2: "BNC 2 de la plaque", VB: "douille VB", VC: "douille VC", MASSE: "douille MASSE" }[e] || e;
   }
   function say(txt, cls) {
     const el = document.getElementById("cable-msg"); if (!el) return;
@@ -62,7 +62,7 @@ const Cables = (() => {
     refreshAll();
   }
   function clickPort(end) { if (state.tool === "delete") { if (!removeAt(end)) say("Aucun câble sur cette prise.", "warn"); else say("Câble retiré.", "ok"); } else pick(end); }
-  function pickHole(hid) { const c = connOfHole(hid); if (c) pick(c); else say("Mode câble : clique une prise d'appareil ou une douille BNC / banane de la plaque (en haut).", "warn"); }
+  function pickHole(hid) { const c = connOfHole(hid); if (c) pick(c); else say("Mode câble : clique une prise d'appareil ou une douille BNC / banane de la plaque (en haut ; les 2 bananes rouge et noire de gauche se câblent aussi).", "warn"); }
 
   function removeAt(end) {
     const n = state.placedCables.length;

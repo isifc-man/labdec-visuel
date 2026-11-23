@@ -19,17 +19,7 @@
 </header>
 <div class="lv-main">
   <nav id="lv-nav"><h2>MONTAGES</h2><div id="tree"></div><div id="free">○ Mode libre</div>
-    <h2 class="nav-h">COMPOSANTS</h2><div id="p-compo"></div></nav>
-
-  <section id="lv-centre">
-    <div id="subject-bar"><div id="subject-text"></div><button class="btn sm" id="subject-toggle" title="Réduire / agrandir le sujet">sujet ▾</button></div>
-    <div id="instruments">
-      <div class="inst" data-inst="scope"><div class="cap">OSCILLOSCOPE</div><div id="face-scope"></div></div>
-      <div class="inst" data-inst="gbf"><div class="cap">GÉNÉRATEUR (GBF)</div><div id="face-gbf"></div></div>
-      <div class="inst" data-inst="psu"><div class="cap">ALIMENTATION</div><div id="face-psu"></div></div>
-    </div>
-    <div id="boardzone">
-      <div id="boardbar">
+    <h2 class="nav-h">OUTILS</h2><div id="boardbar">
         <div class="tool-group">
           <button class="t-btn active" data-tool="wire">Fil</button><button class="t-btn" data-tool="resistor">Résistance</button>
           <button class="t-btn" data-tool="chip">Puce</button><button class="t-btn" data-tool="cable" title="Câble BNC ou banane entre un appareil et la plaque">Câble d'appareil</button><button class="t-btn" data-tool="delete">Gomme</button>
@@ -46,9 +36,19 @@
           <select id="resistor-val-input"><option value="100">100 Ω</option><option value="330">330 Ω</option><option value="820">820 Ω</option><option value="1000" selected>1 kΩ</option><option value="8200">8,2 kΩ</option><option value="10000">10 kΩ</option></select></div>
         <div id="chip-select-box" style="display:none;gap:4px;align-items:center"><span class="mut">Puce :</span>
           <select id="chip-val-input"><option value="TL081">TL081</option><option value="74LS00">74LS00</option><option value="74LS74">74LS74</option></select></div>
-        <div id="cable-msg"></div>
-        <div id="active-pointer-info">Survole un trou de la plaque.</div>
-      </div>
+    </div>
+    <h2 class="nav-h">COMPOSANTS</h2><div id="p-compo"></div></nav>
+
+  <section id="lv-centre">
+    <div id="subject-bar"><div id="subject-text"></div><button class="btn sm" id="subject-toggle" title="Réduire / agrandir le sujet">sujet ▾</button></div>
+    <div id="instruments">
+      <div class="inst" data-inst="scope"><div class="cap">OSCILLOSCOPE</div><div id="face-scope"></div></div>
+      <div class="inst" data-inst="gbf"><div class="cap">GÉNÉRATEUR (GBF)</div><div id="face-gbf"></div></div>
+      <div class="inst" data-inst="psu"><div class="cap">ALIMENTATION</div><div id="face-psu"></div></div>
+    </div>
+    <div id="boardzone">
+      <div id="boardstatus"><div id="cable-msg"></div>
+        <div id="active-pointer-info">Survole un trou de la plaque.</div></div>
       <div id="board-host-split"></div>
     </div>
   </section>

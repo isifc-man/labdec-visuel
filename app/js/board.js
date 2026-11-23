@@ -63,7 +63,7 @@ function buildBoardGeometry() {
     { id: "MASSE", label: "MASSE (0V)", x: 675, col: "#0ea5a4", type: "banane" }
   ];
 
-  const LIVE = new Set(["BNC1", "BNC2", "VB", "VC", "MASSE"]);   // douilles reliées au moteur (les 2 bananes rouge/noire du haut sont décoratives)
+  const LIVE = new Set(["BANANE_ROUGE", "BANANE_NOIRE", "BNC1", "BNC2", "VB", "VC", "MASSE"]);   // les 7 connecteurs de la plaque, tous câblables
   let connHits = "";
   connsData.forEach(c => {
     connSvg += `<circle id="anchor-${c.id}" cx="${c.x}" cy="60" r="1" fill="none"/>`;
@@ -200,6 +200,7 @@ function renderPlacedElements() {
 // 3. PETITS CÂBLES DE LA PLAQUE : sous chaque âme / blindage / douille, un cordon pend déjà ; il suffit d'enficher son bout dans un trou.
 // Clic sur le bout qui pend, puis clic sur le trou : le fil est posé avec la couleur du cordon (le cordon disparaît tant qu'un fil part de ce trou).
 const LEADS = {
+  "BANANE_ROUGE.main": { dx: -10, col: "rouge", nom: "banane rouge (gauche)" }, "BANANE_NOIRE.main": { dx: 10, col: "noir", nom: "banane noire (gauche)" },
   "BNC1.core": { dx: -16, col: "rouge", nom: "âme BNC 1" }, "BNC1.shield": { dx: 16, col: "noir", nom: "blindage BNC 1" },
   "BNC2.core": { dx: -16, col: "orange", nom: "âme BNC 2" }, "BNC2.shield": { dx: 16, col: "noir", nom: "blindage BNC 2" },
   "VB.main": { dx: 0, col: "bleu", nom: "douille VB (−15 V)" }, "VC.main": { dx: 0, col: "rouge", nom: "douille VC (+15 V)" }, "MASSE.main": { dx: 0, col: "turquoise", nom: "douille MASSE (0 V)" },

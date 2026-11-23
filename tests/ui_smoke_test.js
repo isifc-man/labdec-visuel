@@ -43,10 +43,14 @@ setTimeout(() => {
   const cols = ev(`state.placedCables.map(c => c.couleur).join(",")`);
   ok(ev(`state.placedCables.every(c => c.couleur)`), "chaque câble a une couleur : " + cols);
   ok(ev(`state.placedCables.find(c => c.vers === "VC").couleur`) === "rouge" && ev(`state.placedCables.find(c => c.vers === "VB").couleur`) === "noir", "bananes : + rouge, − noir");
-  ok(w.document.querySelectorAll(".conn-hit").length === 5 && !!w.document.getElementById("anchor-BNC1"), "5 douilles réelles cliquables (BNC1, BNC2, VB, VC, MASSE)");
+  ok(w.document.querySelectorAll(".conn-hit").length === 7 && !!w.document.getElementById("anchor-BNC1"), "7 douilles réelles cliquables (BNC1, BNC2, VB, VC, MASSE + banane rouge et noire de gauche)");
   ev(`Cables.cancel(); Cables.clickPort("scope.ch1"); Cables.clickConn("BNC2")`);
   ok(ev(`state.placedCables.length`) === 7, "voie 1 déjà câblée : pas de 2e câble sur la même BNC");
   ev(`Cables.cancel()`);
+
+  cab("psu.ch1_plus", "BANANE_ROUGE"); cab("psu.ch1_moins", "BANANE_NOIRE");
+  ok(ev(`state.placedCables.filter(c => /BANANE_/.test(c.vers)).length`) === 2, "les 2 bananes rouge et noire de gauche reçoivent chacune un câble");
+  ev(`Cables.removeAt("BANANE_ROUGE"); Cables.removeAt("BANANE_NOIRE")`);
 
   // 3. câblage de la plaque = corrigé, SANS les câbles du corrigé : tout dépend des câbles posés
   ev(`(() => { const m = curMontage(); const w = wiringOfSolution(m); state.placedWires = (m.fils||[]).map(x => ({n:x.n,de:x.de,vers:x.vers,couleur:x.couleur||"rouge"}));
@@ -82,11 +86,11 @@ setTimeout(() => {
 
   // 6b. petits câbles qui pendent de la plaque + retour d'erreur
   ev(`Lesson.clearWiring(); renderPlacedElements(); state.tool="wire";`);
-  ok(w.document.querySelectorAll(".lead-hit").length === 7, "7 petits câbles pendent sous âme / blindage / VB / VC / MASSE");
+  ok(w.document.querySelectorAll(".lead-hit").length === 9, "9 petits câbles pendent sous les 9 trous des connecteurs (dont les 2 bananes de gauche)");
   const leadClick = hid => w.document.querySelector(`.lead-hit[data-lead="${hid}"]`).dispatchEvent(new w.MouseEvent("click", { bubbles: true }));
   leadClick("BNC1.core"); click("T1g53");
   ok(ev(`state.placedWires.map(x => x.de + ">" + x.vers + ":" + x.couleur).join()`) === "BNC1.core>T1g53:rouge", "bout du cordon → trou : fil posé, couleur du cordon : " + ev(`state.placedWires.map(x => x.de + ">" + x.vers + ":" + x.couleur).join()`));
-  ok(w.document.querySelectorAll(".lead-hit").length === 6, "le cordon branché ne pend plus");
+  ok(w.document.querySelectorAll(".lead-hit").length === 8, "le cordon branché ne pend plus");
   leadClick("BNC1.shield"); leadClick("VB.main");
   ok(ev(`state.placedWires.length`) === 2, "un cordon peut aussi être enfiché sur un autre (2 fils)");
   ev(`Feedback.openForm()`);

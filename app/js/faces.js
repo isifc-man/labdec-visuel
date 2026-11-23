@@ -45,7 +45,8 @@ const Faces = (() => {
       { t: "soft", id: "back", x: 476, y: 40, w: 44, h: 24, label: "Back", round: 1 },
       ...[0, 1, 2, 3, 4, 5].map(i => ({ t: "soft", id: "sk" + (i + 1), x: 476, y: 78 + i * 46, w: 44, h: 26 })),
       ...["Waveform", "Parameter", "Units", "System"].map((l, i) => ({ t: "btn", id: l.toLowerCase(), x: 560 + i * 100, y: 56, w: 88, h: 34, label: l, cls: i === 0 ? "white" : "dark", inert: i >= 2 })),
-      ...["Modulate", "Sweep", "Burst", "Trigger"].map((l, i) => ({ t: "btn", id: l.toLowerCase(), x: 560 + i * 100, y: 100, w: 88, h: 30, label: l, cls: "gray", inert: 1 })),
+      ...["Modulate", "Sweep", "Burst"].map((l, i) => ({ t: "btn", id: l.toLowerCase(), x: 560 + i * 100, y: 100, w: 88, h: 30, label: l, cls: "gray", inert: 1 })),
+      { t: "btn", id: "gtrig", x: 860, y: 100, w: 88, h: 30, label: "Trigger", cls: "gray", tip: "Menu Trigger : Sync ON/OFF (touche de côté 1)" },
       ...[["7", 0, 0], ["8", 1, 0], ["9", 2, 0], ["4", 0, 1], ["5", 1, 1], ["6", 2, 1], ["1", 0, 2], ["2", 1, 2], ["3", 2, 2], ["0", 0, 3], [".", 1, 3], ["+/-", 2, 3]]
         .map(([l, c, r]) => ({ t: "btn", id: "k" + l, x: 560 + c * 66, y: 160 + r * 52, w: 56, h: 42, label: l, cls: "dark key" })),
       { t: "knob", id: "knob", cx: 842, cy: 232, r: 52, tip: "Molette : incrémente le paramètre en cours d'édition" },

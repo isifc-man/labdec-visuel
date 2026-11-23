@@ -132,6 +132,11 @@ const Engine = (() => {
       const plus = `psu.ch${k}_plus`, moins = `psu.ch${k}_moins`;
       if (portsUsed.has(plus) || portsUsed.has(moins)) psu.push({ k, a: node(port(plus)), b: node(port(moins)) });
     });
+    let dmm = null;
+    if (wiring.dmm && wiring.dmm.v && wiring.dmm.com && env.holeIds.has(wiring.dmm.v) && env.holeIds.has(wiring.dmm.com)) {
+      dmm = { v: node(wiring.dmm.v), com: node(wiring.dmm.com) };
+      R.push({ a: dmm.v, b: dmm.com, g: 1 / (P.dmmR || 10e6), name: "Rin_dmm" });
+    }
     cableHoles.forEach(([id, h]) => { if (P.cablePf) C.push({ a: node(h), b: "0", c: P.cablePf * 1e-12, name: "Ccab_" + id }); });
 
     const mins = [...portsUsed].filter(p => p.startsWith("psu.") && p.endsWith("_moins"));
@@ -145,7 +150,7 @@ const Engine = (() => {
     psu.forEach(e => { add(e.a); add(e.b); }); leds.forEach(e => { add(e.a); add(e.k); });
     ops.forEach(o => ["inp", "inn", "vcc", "vee", "out", "y"].forEach(y => add(o[y])));
     chips.forEach(c => Object.values(c.pins).forEach(add));
-    return { uf, node, P, R, C, TH, psu, ops, leds, chips, probes, nodes: [...nodeSet].sort(), warnings, notes, info, portsUsed };
+    return { uf, node, P, R, C, TH, psu, ops, leds, chips, probes, dmm, nodes: [...nodeSet].sort(), warnings, notes, info, portsUsed };
   }
   const fmtOhmE = v => v >= 1e6 ? +(v / 1e6).toFixed(2) + " MΩ" : v >= 1e3 ? String(+(v / 1e3).toFixed(2)).replace(".", ",") + " kΩ" : v + " Ω";
 
@@ -185,7 +190,8 @@ const Engine = (() => {
     const idx = new Map(nodes.map((n, i) => [n, i]));
     const ix = n => (n === "0" || n == null) ? -1 : idx.get(n);
     const nOp = net.ops.length, N = nN + nOp;
-    const g = src.gbf || {}, gbfOn = !!g.on && net.TH.length > 0;
+    const g = src.gbf || {}, hasSync = net.TH.some(s => s.kind === "sync"), hasGbfOut = net.TH.some(s => s.kind === "gbf");
+    const mainOn = !!g.on && hasGbfOut, syncOn = g.sync !== false && hasSync, gbfOn = mainOn || syncOn;
     const f = Math.max(1e-3, g.f || 1000), T = 1 / f, A = (g.vpp || 0) / 2, off = g.offset || 0, wave = g.wave || "sine";
     const edge = Math.min(P.gbfEdge, T / 10);
     const psuSet = k => { const c = (src.psu || {})[k] || {}; return { v: c.on ? Number(c.v) || 0 : 0, i: Math.max(1e-4, Number(c.i) || 0.1), on: !!c.on }; };
@@ -197,11 +203,10 @@ const Engine = (() => {
     const tri = tt => { const ph = (((tt % T) + T) % T) / T; return ph < 0.5 ? -1 + 4 * ph : 3 - 4 * ph; };
     const gbfV = tt => wave === "square" ? off + A * sq(tt) : wave === "triangle" ? off + A * tri(tt) : off + A * Math.sin(2 * Math.PI * f * tt);
     const syncV = tt => P.syncHigh * (sq(tt) + 1) / 2;
-    const hasSync = net.TH.some(s => s.kind === "sync"), hasGbfOut = net.TH.some(s => s.kind === "gbf");
-    const edgy = gbfOn && (hasSync || (hasGbfOut && wave !== "sine"));
+    const edgy = syncOn || (mainOn && wave !== "sine");
     function nextSrcBreak(t) {               // prochaine discontinuité de pente des sources après t
       if (!edgy) return Infinity;
-      const k = Math.floor(t / T), marks = (hasSync || wave === "square") ? [0, edge, T / 2, T / 2 + edge] : [0, T / 2];
+      const k = Math.floor(t / T), marks = (syncOn || wave === "square") ? [0, edge, T / 2, T / 2 + edge] : [0, T / 2];
       for (let kk = k; kk <= k + 1; kk++) for (const m of marks) { const tb = kk * T + m; if (tb > t * (1 + 1e-12) + 1e-18) return tb; }
       return Infinity;
     }
@@ -236,7 +241,7 @@ const Engine = (() => {
           vpp = integ.a2 ? ((c.a >= 0 ? integ.x2[c.a] : 0) - (c.b >= 0 ? integ.x2[c.b] : 0)) : 0;
         addG(c.a, c.b, gc); addJ(c.a, c.b, gc * (integ.a1 * vp + integ.a2 * vpp));
       });
-      if (gbfOn) net.TH.forEach(s => { const e = s.kind === "gbf" ? gbfV(t) : syncV(t); addG(ix(s.a), -1, 1 / s.r); addJ(ix(s.a), -1, e / s.r); });
+      net.TH.forEach(s => { if (s.kind === "gbf" ? !mainOn : !syncOn) return; const e = s.kind === "gbf" ? gbfV(t) : syncV(t); addG(ix(s.a), -1, 1 / s.r); addJ(ix(s.a), -1, e / s.r); });
       net.psu.forEach((p, i) => {
         const st = psuSt[i]; if (!st.on) return;
         if (st.mode === "cv") { addG(ix(p.a), ix(p.b), 1 / P.psuR); addJ(ix(p.a), ix(p.b), st.v / P.psuR); }
@@ -389,9 +394,10 @@ const Engine = (() => {
     const psuV = xx => net.psu.map(p => V(xx, p.a) - V(xx, p.b));
     const probeKeys = ["ch1", "ch2"].filter(c => net.probes[c]);
 
-    const rec = { t: [], ch: { ch1: [], ch2: [] }, led: leds.map(() => []), psuI: net.psu.map(() => []), psuV: net.psu.map(() => []), psuCC: net.psu.map(() => false) };
+    const rec = { t: [], dmm: [], ch: { ch1: [], ch2: [] }, led: leds.map(() => []), psuI: net.psu.map(() => []), psuV: net.psu.map(() => []), psuCC: net.psu.map(() => false) };
     const push = (tt, xx) => {
       rec.t.push(tt);
+      if (net.dmm) rec.dmm.push(V(xx, net.dmm.v) - V(xx, net.dmm.com));
       probeKeys.forEach(c => rec.ch[c].push(V(xx, net.probes[c])));
       const li = ledI(xx); li.forEach((v, i) => rec.led[i].push(v));
       const pi = psuI(xx), pv = psuV(xx); pi.forEach((v, i) => { rec.psuI[i].push(v); rec.psuV[i].push(pv[i]); if (psuSt[i].mode === "cc") rec.psuCC[i] = true; });
@@ -455,7 +461,12 @@ const Engine = (() => {
     const tt = Float64Array.from(rec.t);
     const out = { ok: true, dc, T: dc ? null : T, f: dc ? null : f, P: dc ? 0 : recLen, t: tt, ch: {}, steps, leds: {}, psu: {}, ops: [], chips: [] };
     probeKeys.forEach(c => { out.ch[c] = Float64Array.from(rec.ch[c]); });
+
     const avg = arr => { if (dc || arr.length < 2) return arr[0] || 0; let s = 0; for (let i = 1; i < arr.length; i++) s += (arr[i] + arr[i - 1]) / 2 * (tt[i] - tt[i - 1]); return s / (tt[tt.length - 1] - tt[0]); };
+    if (net.dmm) {   // grandeurs vues par le multimètre : moyenne, valeur efficace vraie (alternatif seul), valeur moyenne redressée
+      const a = rec.dmm, m = avg(a), sq = avg(a.map(v => (v - m) * (v - m))), ab = avg(a.map(v => Math.abs(v - m)));
+      out.dmm = { dc: m, acRms: Math.sqrt(Math.max(0, sq)), acAvgAbs: ab };
+    }
     leds.forEach((n, i) => { const a = Float64Array.from(rec.led[i]); out.leds[n] = { i: a, avg: avg(a), max: a.reduce((m, v) => v > m ? v : m, -Infinity), min: a.reduce((m, v) => v < m ? v : m, Infinity) }; });
     net.psu.forEach((p, i) => { out.psu[p.k] = { i: avg(rec.psuI[i]), v: avg(rec.psuV[i]), imax: rec.psuI[i].reduce((m, v) => Math.max(m, Math.abs(v)), 0), cc: rec.psuCC[i] }; });
     net.ops.forEach((o, k) => { const st = opSt[k]; out.ops.push({ name: o.name, powered: st.powered, rev: st.rev, sat: dc ? (st.mode === "hi" || st.mode === "lo") : st.satT / recLen > 0.002, slew: !dc && st.slewT / recLen > 0.002 }); });
@@ -585,7 +596,7 @@ const Engine = (() => {
       if (l.max > net.P.ledImax) an.warnings.push(`${n} : ${(l.max * 1e3).toFixed(0)} mA dans la LED (> 30 mA) : elle grille sur le vrai banc. Il manque une résistance de protection ?`);
     });
     if (!net.probes.ch1 && !net.probes.ch2) an.notes.push("Aucune voie d'oscillo câblée.");
-    if (src.gbf && src.gbf.on && net.TH.length === 0 && (net.probes.ch1 || net.probes.ch2)) an.notes.push("Le GBF est allumé mais aucun câble ne part de sa sortie.");
+    if (src.gbf && src.gbf.on && !net.TH.some(s => s.kind === "gbf") && (net.probes.ch1 || net.probes.ch2)) an.notes.push("Le GBF est allumé mais aucun câble ne part de sa sortie.");
     // grandeurs de synthèse
     const s = rec.stats;
     an.dc1 = s.ch1 ? s.ch1.mean : 0; an.dc2 = s.ch2 ? s.ch2.mean : 0;

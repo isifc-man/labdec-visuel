@@ -23,6 +23,7 @@ const Gbf = (() => {
     else if (id === "waveform") { g.menu = "waveform"; g.field = null; g.buf = ""; }
     else if (id === "parameter") { g.menu = "param"; g.field = null; g.buf = ""; }
     else if (id === "setup") { g.menu = "setup"; g.field = null; g.buf = ""; }
+    else if (id === "gtrig") { g.menu = "trigger"; g.field = null; g.buf = ""; }
     else if (id === "back") { if (g.field) { g.field = null; g.buf = ""; g.menu = "param"; } else g.menu = "home"; }
     else if (id === "onoff") g.on = !g.on;
     else if (/^sk[1-6]$/.test(id)) softkey(+id[2]);
@@ -33,6 +34,7 @@ const Gbf = (() => {
     const g = G();
     if (g.menu === "waveform") { if (n <= 3) g.wave = ["sine", "square", "triangle"][n - 1]; return; }
     if (g.menu === "setup") { if (n === 1) g.load = g.load === "50" ? "highz" : "50"; return; }
+    if (g.menu === "trigger") { if (n === 1) g.sync = g.sync === false; return; }
     if (g.menu === "param" && !g.field) { const f = ["freq", "amp", "off"][n - 1]; if (f) { g.field = f; g.buf = ""; } return; }
     if (g.field && n <= 4) {           // unité choisie : validation de la saisie
       const F = FIELDS[g.field], u = F.units[n - 1];
@@ -51,7 +53,8 @@ const Gbf = (() => {
   function softLabels() {
     const g = G();
     if (g.menu === "waveform") return ["Sine", "Square", "Ramp", "Pulse", "Arb", "MORE 1/2"];
-    if (g.menu === "setup") return ["Output Load\n" + (g.load === "50" ? "50 Ω" : "High Z"), "Polarity\nNormal", "Sync\nON", "", "", ""];
+    if (g.menu === "setup") return ["Output Load\n" + (g.load === "50" ? "50 Ω" : "High Z"), "Polarity\nNormal", "", "", "", ""];
+    if (g.menu === "trigger") return ["Sync\n" + (g.sync === false ? "OFF" : "ON"), "", "", "", "", ""];
     if (g.field) return FIELDS[g.field].units.map(u => u[0]).concat(["", ""]).slice(0, 6);
     if (g.menu === "param") return ["Frequency", "Amplitude", "Offset", "Phase", "", "MORE 1/2"];
     return ["", "", "", "", "", ""];
@@ -72,7 +75,7 @@ const Gbf = (() => {
     // en-tête de voie
     ctx.textBaseline = "middle"; ctx.font = `bold ${14 * u}px Arial`;
     ctx.fillStyle = g.on ? "#facc15" : "#94a3b8"; ctx.fillText(g.on ? "ON" : "OFF", W * 0.04, H * 0.07);
-    ctx.fillStyle = "#cbd5e1"; ctx.font = `${12 * u}px Arial`; ctx.fillText(g.load === "50" ? "CH1 · 50 Ω" : "CH1 · High Z", W * 0.15, H * 0.07);
+    ctx.fillStyle = "#cbd5e1"; ctx.font = `${12 * u}px Arial`; ctx.fillText((g.load === "50" ? "CH1 · 50 Ω" : "CH1 · High Z") + (g.sync === false ? " · Sync OFF" : " · Sync ON"), W * 0.15, H * 0.07);
     // aperçu de forme
     const bx = W * 0.05, by = H * 0.14, bw = W * 0.68, bh = H * 0.34;
     ctx.strokeStyle = g.on ? "#22c55e" : "#4b5d52"; ctx.lineWidth = 1.5 * u; ctx.strokeRect(bx, by, bw, bh);

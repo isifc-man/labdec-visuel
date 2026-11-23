@@ -136,6 +136,21 @@ setTimeout(() => {
   ok(ev(`nodeChecklist().allOk`), "R1 posée dans l'autre sens : toujours valide");
   ev(`state.placedWires.push({n:99,de:"T1a10",vers:"T1h39",couleur:"rouge"}); renderPlacedElements()`);
   ok(/une seule patte par trou/.test(w.document.getElementById("alerts-box").textContent), "deux pattes dans le même trou : signalé");
+  // 9. questions TP3, multimètre, TP4 blanc, panne, documentation
+  ev(`Lesson.load("tp3-C-compteur"); Lesson.showTab("quest")`);
+  ok(ev(`document.querySelectorAll("#p-quest [data-q]").length`) === 2, "TP3 compteur : questions « à prédire » présentes");
+  ev(`document.querySelector("#p-quest [data-q='1']").click()`);
+  ok(/250\.0 Hz/.test(ev(`document.getElementById("rev1").textContent`)), "réponse calculée : Q1 = 250 Hz");
+  ev(`Lesson.load("tp1-B1-pont-diviseur"); Lesson.putSolution(curMontage()); state.gbf.on = true; state.gbf.vpp = 2; state.gbf.load = "highz";
+      state.dmm.v = curMontage().fils.find(w => w.de === "BNC2.core").vers; state.dmm.com = "TOP-L1-20"; state.dmm.mode = "ac"; renderPlacedElements()`);
+  ok(/70\.\d+ mV/.test(ev(`document.querySelector(".dmm-lcd").textContent`)), "multimètre V~ TRMS sur le pont : ≈ 70 mV");
+  ev(`Train.startTp4()`); ok(/masqué/.test(ev(`document.getElementById("p-corr").textContent`)), "TP4 blanc : corrigé masqué");
+  ev(`Lesson.putSolution(curMontage()); state.gbf.on = true; if (state.preset.gbf) state.gbf.load = state.preset.gbf.load; [1,2,3].forEach(k => { if (state.preset.psu && state.preset.psu[k] != null) state.psu.ch[k].on = true; }); renderPlacedElements(); document.getElementById("tr-end").click()`);
+  ok(/20\.0 \/ 20/.test(ev(`document.getElementById("train-modal").textContent`)), "TP4 blanc avec le bon montage : 20 / 20");
+  ev(`Train.startPanne()`); ok(ev(`circuitMatch().status`) !== "ok" || !ev(`nodeChecklist().allOk`), "panne : le montage tiré est bien faux");
+  ev(`Lesson.putSolution(curMontage()); renderPlacedElements()`);
+  ok(/Panne trouvée/.test(ev(`document.getElementById("train-modal").textContent`)), "panne réparée : détectée");
+  ev(`Docs.open()`); ok(ev(`document.querySelectorAll("#docs-modal a").length`) >= 6, "documentation des appareils : liens vers les manuels");
   ok(errors.length === 0, "aucune erreur JavaScript pendant le test" + (errors.length ? " : " + errors.join(" | ") : ""));
   console.log(fails ? `\n${fails} ÉCHEC(S)` : "\nTOUS LES TESTS D'INTERFACE PASSENT");
   process.exit(fails ? 1 : 0);

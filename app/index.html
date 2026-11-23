@@ -12,13 +12,14 @@
 <header class="lv-top">
   <h1>LABDEC_VISUEL</h1><span id="cur-title"></span><span class="sp"></span>
   <button class="btn" id="btn-help" title="Comment s'entraîner">? Aide</button>
+  <button class="btn" id="btn-docs" title="Manuels des appareils et menus utiles">📘 Appareils</button>
   <button class="btn" id="btn-feedback" title="Une erreur dans un montage, un écran, le sujet ?">⚑ Signaler une erreur</button>
   <button class="btn" id="btn-zero" title="Retire tout de la plaque (les appareils restent réglés)">⟲ de zéro</button>
   <button class="btn" id="btn-undo">⎌ annuler</button>
   <button class="btn" id="btn-factory" title="GBF, alim et oscillo remis aux valeurs d'usine, sorties éteintes">appareils d'usine</button>
 </header>
 <div class="lv-main">
-  <nav id="lv-nav"><h2>MONTAGES</h2><div id="tree"></div><div id="free">○ Mode libre</div>
+  <nav id="lv-nav"><h2>MONTAGES</h2><div id="tree"></div><div id="free">○ Mode libre</div><div class="train-entry" id="tr-tp4">🎯 TP4 blanc (chrono, sans corrigé)</div><div class="train-entry" id="tr-panne">🔧 Trouve la panne</div>
     <h2 class="nav-h">OUTILS</h2><div id="boardbar">
         <div class="tool-group">
           <button class="t-btn active" data-tool="wire">Fil</button><button class="t-btn" data-tool="resistor">Résistance</button>
@@ -40,11 +41,14 @@
     <h2 class="nav-h">COMPOSANTS</h2><div id="p-compo"></div></nav>
 
   <section id="lv-centre">
+    <div id="train-bar" style="display:none"></div>
     <div id="subject-bar"><div id="subject-text"></div><button class="btn sm" id="subject-toggle" title="Réduire / agrandir le sujet">sujet ▾</button></div>
     <div id="instruments">
       <div class="inst" data-inst="scope"><div class="cap">OSCILLOSCOPE</div><div id="face-scope"></div></div>
       <div class="inst" data-inst="gbf"><div class="cap">GÉNÉRATEUR (GBF)</div><div id="face-gbf"></div></div>
       <div class="inst" data-inst="psu"><div class="cap">ALIMENTATION</div><div id="face-psu"></div></div>
+    </div>
+    <div id="dmm-panel">
     </div>
     <div id="boardzone">
       <div id="boardstatus"><div id="cable-msg"></div>

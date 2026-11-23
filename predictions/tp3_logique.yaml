@@ -1,0 +1,54 @@
+# TP3 — questions « à prédire » (lues par tools/export_app_data.py ; la réponse chiffrée est calculée par le moteur
+# de l'application sur le câblage corrigé, éventuellement modifié par « modif »).
+# modif : [{fil: <trou de départ du fil>, vers: <nouveau trou>}] ou [{retirer_fil: <trou de départ>}]
+tp: 3
+titre: "TP3 — Électronique numérique (74LS00, 74LS74), alimentation 5 V"
+circuits:
+- id: tp3-A-nand
+  scenarios:
+  - titre: "Table de vérité : A = 1, B = 1 (câblage du corrigé)"
+    a_predire: "Que vaut la sortie Y ? La LED est-elle allumée ?"
+    pourquoi: "NON-ET : la sortie ne vaut 0 que si les deux entrées valent 1. Y bas (≈ 0,1 V) : la LED, branchée de Y vers la masse, ne reçoit pas de courant."
+  - titre: "A = 0 (fil de A sur la masse), B = 1"
+    modif: [{fil: T1f50, vers: TOP-L1-9}]
+    a_predire: "Que vaut Y ? Pourquoi la tension haute n'atteint-elle pas 5 V ?"
+    pourquoi: "Une seule entrée à 0 suffit : Y = 1. Une sortie TTL haute vaut environ VCC − 1,5 V à vide et baisse quand elle fournit du courant (ici à la LED) : on mesure ≈ 3,2 V, et non 5 V."
+  - titre: "Entrée A laissée en l'air"
+    modif: [{retirer_fil: T1f50}]
+    a_predire: "Une entrée TTL non branchée est-elle vue comme 0 ou comme 1 ?"
+    pourquoi: "En TTL, une entrée en l'air est vue comme un 1 (le sujet le dit pour la bascule). Y reste donc bas. En pratique on ne laisse jamais une entrée en l'air : elle capte les parasites."
+- id: tp3-A2-seuils
+  scenarios:
+  - titre: "Triangle 0–5 V sur A, B relié au +5 V"
+    gbf: {kind: triangle, vpp: 5, offset: 2.5, f: 1000, charge: HighZ}
+    a_predire: "Quelle forme a Y ? À quelle tension d'entrée bascule-t-elle, à la montée et à la descente ?"
+    pourquoi: "Avec B = 1, la porte est un inverseur : Y est un créneau en opposition avec le triangle. Le 74LS00 n'a pas d'hystérésis : il bascule vers 1,3 V dans les deux sens (le simulateur prend 1,3 V ; la fiche garantit seulement VIL ≤ 0,8 V et VIH ≥ 2 V). Mesure aux curseurs."
+  - titre: "Piège : GBF laissé en « 50 Ω »"
+    gbf: {kind: triangle, vpp: 5, offset: 2.5, f: 1000, charge: "50"}
+    a_predire: "Avec les mêmes réglages mais la charge du GBF sur 50 Ω, quelle tension max arrive sur l'entrée A ?"
+    pourquoi: "Le GBF croit débiter dans 50 Ω et double sa tension : l'entrée monte vers 10 V, au-delà des 7 V maximum d'une entrée 74LS. Toujours régler High Z quand on attaque une porte logique."
+  - titre: "Piège : offset oublié (triangle −2,5…+2,5 V)"
+    gbf: {kind: triangle, vpp: 5, offset: 0, f: 1000, charge: HighZ}
+    a_predire: "Sans offset, que devient l'entrée quand le triangle est négatif ? Et Y ?"
+    pourquoi: "La diode de protection de l'entrée conduit dès ≈ −0,6 V : l'entrée est écrêtée et le GBF débite dans la diode. Y n'est bas que quand l'entrée dépasse 1,3 V, donc moins longtemps qu'avec l'offset."
+- id: tp3-B-bascule-D
+  scenarios:
+  - titre: "Bascule D rebouclée (D = Q̄), horloge Sync 1 kHz"
+    gbf: {kind: square, vpp: 5, offset: 2.5, f: 1000, charge: HighZ}
+    a_predire: "Quelle est la fréquence de Q ? Sur quel front de l'horloge Q change-t-il ?"
+    pourquoi: "À chaque front montant de CLK, Q recopie D = Q̄ : Q change donc d'état une fois par période de l'horloge, d'où f(Q) = f(CLK) / 2 = 500 Hz. Rien ne se passe sur les fronts descendants."
+  - titre: "Retard de propagation"
+    gbf: {kind: square, vpp: 5, offset: 2.5, f: 1000, charge: HighZ}
+    a_predire: "Combien de temps après le front montant de CLK la sortie Q change-t-elle ? Est-ce le même retard à la montée et à la descente de Q ?"
+    pourquoi: "La fiche du 74LS74 donne tPLH ≈ 13 ns (max 25) et tPHL ≈ 25 ns (max 40) : les deux retards sont différents. On les mesure à 1,5 V, avec une base de temps de 10 à 20 ns/div et le déclenchement sur CLK."
+- id: tp3-C-compteur
+  scenarios:
+  - titre: "Compteur 2 bits, horloge 1 kHz : Q0"
+    gbf: {kind: square, vpp: 5, offset: 2.5, f: 1000, charge: HighZ}
+    a_predire: "Quelle fréquence pour Q0 ?"
+    pourquoi: "La première bascule divise par 2 : 500 Hz."
+  - titre: "Même montage : Q1 (voie 2 déplacée sur Q1)"
+    gbf: {kind: square, vpp: 5, offset: 2.5, f: 1000, charge: HighZ}
+    modif: [{fil: BNC2.core, vers: T1c45}]
+    a_predire: "Quelle fréquence pour Q1 ? Le changement de Q1 est-il en même temps que celui de Q0 ?"
+    pourquoi: "La 2e bascule est cadencée par Q̄0 : elle divise encore par 2, d'où 250 Hz. Elle ne change qu'APRÈS la 1re (retard de la 1re + retard de la 2e, soit plusieurs dizaines de ns après le front de CLK) : le compteur est asynchrone."

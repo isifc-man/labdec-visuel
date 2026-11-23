@@ -9,7 +9,7 @@ import sys
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 APP = ROOT / "app"
 JS_ORDER = ["data.js", "sujet_data.js", "js/engine.js", "js/state.js", "js/runtime.js", "js/cables.js", "js/zoom.js", "js/feedback.js", "js/faces.js", "js/board.js", "js/checks.js",
-            "js/interactions.js", "js/scope.js", "js/gbf.js", "js/psu.js", "js/dock.js", "js/lesson.js", "js/main.js"]
+            "js/interactions.js", "js/scope.js", "js/gbf.js", "js/psu.js", "js/dmm.js", "js/docs.js", "js/train.js", "js/dock.js", "js/lesson.js", "js/main.js"]
 
 
 def main():

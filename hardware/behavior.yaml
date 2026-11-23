@@ -79,4 +79,5 @@ alimentation_EDU36311A:
   precision_affichage_v: {valeur: null, statut: a_remplir}
 
 multimetre:
+  modele_simulateur: {valeur: "TRMS ou moyenne, BP 1 kHz / 100 kHz / 1 MHz, 10 MΩ", statut: a_verifier, note: "réglages exposés dans l'appli tant que le modèle de la salle n'est pas connu"}
   modele: {valeur: null, statut: a_remplir, note: "non photographié ; nécessaire pour TP1 B (oscillo contre multimètre) : bande passante du mode AC, résistance d'entrée"}

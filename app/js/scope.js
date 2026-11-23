@@ -44,7 +44,7 @@ const Scope = (() => {
   }
   function softkey(n) {
     const s = S();
-    if (s.menu === "trig") { if (n === 1) s.trigSrc = s.trigSrc === 1 ? 2 : 1; if (n === 2) s.trigSlope = s.trigSlope > 0 ? -1 : 1; }
+    if (s.menu === "trig") { if (n === 1) s.trigSrc = s.trigSrc === 1 ? 2 : 1; if (n === 2) s.trigSlope = s.trigSlope > 0 ? -1 : 1; if (n === 3) s.trigMode = s.trigMode === "normal" ? "auto" : "normal"; }
     else if (s.menu === "meas") { if (n === 1) s.measPage = (s.measPage + 1) % MEAS_PAGES.length; }
     else if (s.menu === "curs") { if (n === 1) s.cursSel = (s.cursSel + 1) % 4; }
   }
@@ -78,7 +78,7 @@ const Scope = (() => {
     const st = rec.stats[src]; s.trigLevel = +((st.max + st.min) / 2).toFixed(4);
   }
 
-  let current = null;       // dernière acquisition affichée
+  let current = null, lastTrig = null;       // dernière acquisition affichée / dernière acquisition déclenchée
   function acquire(an) {
     const s = S();
     if (!s.running && s.frozen) return s.frozen;
@@ -92,7 +92,11 @@ const Scope = (() => {
       else { tc = Math.random() * rec.P; moving = true; }        // pas de déclenchement : chaque acquisition tombe au hasard
     } else if (!rec.dc) { tc = Math.random() * rec.P; moving = true; }
     const t0 = tc - win / 2 + (s.hpos || 0);
-    return { rec, t0, win, trig, moving };
+    // mode Normal : sans déclenchement, l'écran garde la dernière acquisition déclenchée (ou reste vide)
+    if (!trig && s.trigMode === "normal" && !rec.dc) return lastTrig ? Object.assign({}, lastTrig, { waiting: true }) : { rec: null, t0: 0, win, trig: false, moving: false, waiting: true };
+    const acq = { rec, t0, win, trig, moving };
+    if (trig) lastTrig = acq;
+    return acq;
   }
 
   // ---------- mesures ----------
@@ -139,7 +143,7 @@ const Scope = (() => {
     ctx.fillText(fmtT(s.hpos || 0).replace(" ", ""), cx - 60 * u, ty);
     ctx.fillText(fmtT(s.tdiv).replace(" ", "") + "/", cx + 5 * u, ty);
     ctx.fillStyle = !s.running ? "#f87171" : acq.trig ? "#e5e7eb" : "#fb923c";
-    ctx.fillText(!s.running ? "Stop" : acq.trig ? "Trig'd" : "Auto", cx + 80 * u, ty);
+    ctx.fillText(!s.running ? "Stop" : acq.waiting ? "Trig?" : acq.trig ? "Trig'd" : "Auto", cx + 80 * u, ty);
     ctx.fillStyle = CH_COL[s.trigSrc]; ctx.fillText(`${s.trigSlope > 0 ? "↑" : "↓"} ${s.trigSrc}  ${fmtM(s.trigLevel)}`, gx + gw - 95 * u, ty);
 
     // traces : min/max par colonne
@@ -189,7 +193,7 @@ const Scope = (() => {
     } else if (s.menu === "trig") {
       head("Déclenchement", gy + 34 * u);
       line("1 : Source  voie " + s.trigSrc, gy + 62 * u, CH_COL[s.trigSrc]); line("2 : Front  " + (s.trigSlope > 0 ? "montant ↑" : "descendant ↓"), gy + 80 * u);
-      line("Mode  Auto", gy + 98 * u); line("Niveau " + fmtM(s.trigLevel), gy + 116 * u);
+      line("3 : Mode  " + (s.trigMode === "normal" ? "Normal" : "Auto"), gy + 98 * u); line("Niveau " + fmtM(s.trigLevel), gy + 116 * u);
       line(acq.trig ? "Déclenché" : "Niveau hors du signal :", gy + 150 * u, acq.trig ? "#86efac" : "#fdba74"); if (!acq.trig) line("image instable", gy + 166 * u, "#fdba74");
     } else if (s.menu === "meas") {
       head("Mesures", gy + 34 * u); line(`Page ${s.measPage + 1}/${MEAS_PAGES.length}`, gy + 62 * u); line("Touche 1 : page suivante", gy + 80 * u, "#93c5fd");

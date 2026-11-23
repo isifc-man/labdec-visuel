@@ -147,3 +147,15 @@ body.zoom-on #cable-layer{display:none}
   .inst.zoomed{grid-template-columns:1fr;left:1vw;right:1vw}.inst.zoomed .zoom-side{grid-column:1;grid-row:auto}
 }
 .led-glow{filter:blur(4px);pointer-events:none}
+/* multimètre, entraînement, documentation */
+#dmm-panel{background:var(--panel,#111827);border:1px solid var(--line);border-radius:8px;padding:6px 10px;margin:6px 0}
+#dmm-panel .cap{font-size:11px;letter-spacing:.06em;color:var(--text-muted)}
+.dmm-body{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:4px}
+.dmm-lcd{font-family:"Courier New",monospace;font-size:26px;font-weight:700;background:#c7d2b0;color:#111;padding:4px 12px;border-radius:4px;min-width:170px;text-align:right}
+.dmm-lcd small{font-size:11px;margin-left:6px}
+.dmm-keys{display:flex;gap:4px;flex-wrap:wrap}.dmm-keys .btn.on{background:var(--acc);color:#000}
+.dmm-note{font-size:11px;margin-top:3px}
+.train-entry{cursor:pointer;padding:6px 14px;font-size:13px;color:var(--text-muted)}.train-entry:hover{color:var(--acc)}
+#train-bar{display:flex;gap:10px;align-items:center;flex-wrap:wrap;background:#3b0764;border:1px solid #a855f7;border-radius:8px;padding:6px 10px;margin-bottom:6px;font-size:13px}
+#train-bar .sp{flex:1}#train-bar .timer{font-family:monospace;font-size:15px;color:#fde047}
+.modal-card.wide{max-width:860px}.docs h4{margin:12px 0 4px}.docs li{margin:3px 0;font-size:13px}.docs a{color:var(--acc)}

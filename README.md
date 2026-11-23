@@ -17,7 +17,11 @@ Le moteur (`app/js/engine.js`) fait une **simulation temporelle** du circuit câ
 - **74LS00 / 74LS74** (TP3) : seuil 1,3 V, entrée en l'air = 1, sorties ≈ 3,5 V / 0,1 V, retards de la fiche TI (9/10 ns ; 13/25 ns), alimentation hors plage (> 7 V = puce détruite) signalée.
 - **Oscilloscope** : mesures sur la fenêtre affichée avec la pleine résolution (Fréq, Max, Min, Cr-cr, Moy, Phase lue sur les courbes) ; affichage min/max (bande pleine si le signal est trop rapide, jamais de faux signal) ; déclenchement voie 1/2, front ↑/↓ (touche Trigger puis touches de côté) ; niveau hors du signal → image instable ; curseurs.
 - **Vérifications** indépendantes de l'emplacement sur la plaque (bornes, valeurs des résistances, sens) ; deux pattes dans un même trou signalées.
-- **Non simulé** : multimètre (TP1 B), bruit, quantification, tolérance des composants, compteur synchrone (bonus TP3 : câblable, non vérifié par un corrigé).
+- **Multimètre** (TP1 B) : pointes V / COM sur la plaque, V⎓ / V~, TRMS ou « moyenne », bande passante réglable. Le modèle de la salle n'est pas connu : ces réglages sont des hypothèses affichées comme telles.
+- **Entraînement** : « 🎯 TP4 blanc » (montage tiré au sort, corrigé masqué, 1 h 45, note indicative /20) et « 🔧 Trouve la panne » (une erreur cachée : fil décalé ou manquant, mauvaise valeur, LED retournée, puce décalée).
+- **Questions TP3** (`predictions/tp3_logique.yaml`) : réponses calculées par le moteur, avec l'explication.
+- **📘 Appareils** : liens vers les manuels Keysight et résumé des menus utiles en TP. Sync du GBF conforme au manuel (menu Trigger, indépendante de On/Off) ; mode Auto / Normal de l'oscilloscope.
+- **Non simulé** : bruit, quantification, tolérance des composants, compteur synchrone (bonus TP3 : câblable, non vérifié par un corrigé).
 - Paramètres « à vérifier » sur le vrai banc : saturation (±12,5 V retenu), seuil TTL, résistances de sortie TTL, temps de montée du GBF (10 ns supposé).
 
 ## Signaler une erreur

@@ -69,7 +69,7 @@ const Lesson = (() => {
     renderPlacedElements();
     History.reset();
   }
-  function clearWiring() { state.placedWires = []; state.placedComps = []; state.placedChips = []; state.placedCables = []; state.cableFirst = null; state.armedRef = null; }
+  function clearWiring() { state.placedWires = []; state.placedComps = []; state.placedChips = []; state.placedCables = []; state.cableFirst = null; state.armedRef = null; if (state.dmm) state.dmm.v = state.dmm.com = null; }
   const cableOf = c => ({ id: c.id, couleur: c.couleur || Cables.defaultColor(c), de: c.de, vers: c.vers, nom: c.nom || (c.de.indexOf("psu.") === 0 || c.vers.indexOf("psu.") === 0 ? "câble banane" : "câble BNC–BNC") });
   function putSolution(m) {
     const w = wiringOfSolution(m);
@@ -128,13 +128,31 @@ const Lesson = (() => {
   function scenarioAnswer(m, sc) {
     const g = sc.gbf || {}, wave = g.kind === "square" ? "square" : g.kind === "triangle" ? "triangle" : "sine";
     const ge = { f: g.f || 1000, vpp: (g.charge === "50" ? 2 : 1) * (g.vpp || 1), offset: (g.charge === "50" ? 2 : 1) * (g.offset || 0), wave, on: true };
-    const c = presetConditions(), an = Engine.analyze(wiringOfSolution(m), envFor(m.cables), { gbf: ge, psu: c.psu });
+    const c = presetConditions(), w = JSON.parse(JSON.stringify(wiringOfSolution(m)));
+    (sc.modif || []).forEach(md => {
+      if (md.retirer_fil) w.wires = w.wires.filter(x => x.de !== md.retirer_fil);
+      else if (md.fil) w.wires.forEach(x => { if (x.de === md.fil) x.vers = md.vers; });
+    });
+    const an = Engine.analyze(w, envFor(m.cables), { gbf: Object.keys(g).length ? ge : Object.assign({}, c.gbf), psu: c.psu });
     if (!an.supported) return `<span class="mut">Non simulé : ${esc(an.reasons.join(" "))}</span>`;
     const rec = an.rec, ms = k => rec.ch[k] ? Engine.measure(rec, k, 0, 2 * rec.P + 1e-15) : null, m1 = ms("ch1"), m2 = ms("ch2"), ph = Engine.phase(rec);
     const sat = an.notes.filter(n => /saturation|vitesse de montée/.test(n));
-    return (m1 ? `Cr-cr(1) = ${fmtV(m1.vpp)}` : "") + (m2 ? ` · Cr-cr(2) = ${fmtV(m2.vpp)} · Max(2) = ${fmtV(m2.max)}` : "") +
-      (ph != null ? `<br>Phase(2→1) = ${(Math.abs(ph) < 0.5 ? 0 : ph).toFixed(0)}°` : "") + (an.gain != null && !an.digital ? ` · |Vs/Ve| (fondamental) = ${an.gain.toFixed(3)}` : "") +
-      (sat.length ? `<br><b>${esc(sat.join(" "))}</b>` : "") + `<br><span class="mut">Calculé par le moteur sur le câblage corrigé.</span>`;
+    const fq = mm => mm && mm.freq ? ` · Fréq = ${mm.freq >= 1e3 ? (mm.freq / 1e3).toFixed(3) + " kHz" : mm.freq.toFixed(1) + " Hz"}` : "";
+    let out = an.digital
+      ? (m1 ? `Voie 1 : Min ${fmtV(m1.min)} · Max ${fmtV(m1.max)}${fq(m1)}` : "") + (m2 ? `<br>Voie 2 : Min ${fmtV(m2.min)} · Max ${fmtV(m2.max)}${fq(m2)}` : "")
+      : (m1 ? `Cr-cr(1) = ${fmtV(m1.vpp)}` : "") + (m2 ? ` · Cr-cr(2) = ${fmtV(m2.vpp)} · Max(2) = ${fmtV(m2.max)}` : "") +
+        (ph != null ? `<br>Phase(2→1) = ${(Math.abs(ph) < 0.5 ? 0 : ph).toFixed(0)}°` : "") + (an.gain != null ? ` · |Vs/Ve| (fondamental) = ${an.gain.toFixed(3)}` : "");
+    if (an.digital && m1 && m2 && !rec.dc) {         // retards mesurés à 1,5 V entre un front montant de la voie 1 et les fronts de la voie 2
+      const ck = Engine.crossings(rec, "ch1", 1.5, 1, 0, rec.P), d = s => { const c2 = Engine.crossings(rec, "ch2", 1.5, s, 0, rec.P);
+        const v = c2.map(t => t - (ck.filter(x => x <= t).pop() ?? (ck[ck.length - 1] - rec.P))).filter(x => x >= 0 && x < 2e-7); return v.length ? (v[0] * 1e9).toFixed(1) + " ns" : null; };
+      const up = d(1), dn = d(-1); if (up || dn) out += `<br>Retard voie 1 ↑ → voie 2 (à 1,5 V) : ${up ? "montée " + up : ""}${up && dn ? " · " : ""}${dn ? "descente " + dn : ""}`;
+    }
+    Object.entries(rec.leds).forEach(([n, l]) => { out += `<br>${esc(n)} : ${l.max > 5e-4 ? (l.min > 5e-4 ? "allumée" : "clignote") + ` (${(l.max * 1e3).toFixed(1)} mA max)` : "éteinte"}`; });
+    const dang = an.warnings.filter(x => /DÉTRUITE|ENVERS|grille/.test(x));
+    if (m1 && m1.max > 7 && an.digital) dang.push("entrée au-delà de 7 V : hors des limites d'une entrée 74LS");
+    if (m1 && m1.min < -0.4 && an.digital) out += `<br>Entrée écrêtée vers ${fmtV(m1.min)} par la diode de protection.`;
+    return out + (sat.length ? `<br><b>${esc(sat.join(" "))}</b>` : "") + (dang.length ? `<br><b>⚠ ${esc(dang.join(" ; "))}</b>` : "") +
+      (sc.a ? `<div class="why"><b>Pourquoi :</b> ${esc(sc.a)}</div>` : "") + `<br><span class="mut">Calculé par le moteur sur le câblage corrigé${(sc.modif || []).length ? " (modifié comme indiqué)" : ""}.</span>`;
   }
   function renderQuestions() {
     const m = curMontage(), el = $("#p-quest");
@@ -212,6 +230,7 @@ const Lesson = (() => {
   function refreshSteps() {
     const m = curMontage(), el = $("#p-corr");
     if (!m) { el.innerHTML = "<p class='mut'>Pas de corrigé en mode libre.</p>"; return; }
+    if (typeof Train !== "undefined" && Train.hidesCorrige()) { el.innerHTML = "<p class='mut'>Corrigé masqué pendant l'entraînement (TP4 blanc ou panne). Il revient à la fin.</p>"; return; }
     _steps = steps(m);
     const done = _steps.filter(s => s.done()).length, prev = prevId(m);
     el.innerHTML = `<div class="row"><button class="btn" id="btn-prev" ${prev ? "" : "disabled"}>⇤ partir de « ${prev ? esc(shortTitle(MONTAGES[prev])) : "—"} »</button></div>
@@ -227,6 +246,8 @@ const Lesson = (() => {
 
   function init() {
     $("#free").onclick = () => load("libre");
+    $("#tr-tp4").onclick = () => Train.startTp4(); $("#tr-panne").onclick = () => Train.startPanne();
+    $("#btn-docs").onclick = () => Docs.open();
     window.addEventListener("keydown", e => { if (e.key === "Escape") Zoom.close(); });
     $("#tabs").onclick = e => { const p = e.target.dataset.p; if (p) showTab(p); };
     $("#statusline").onclick = () => showTab("etat");

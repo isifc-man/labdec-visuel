@@ -46,6 +46,7 @@ function setupBoardInteractions() {
 
   function handleHoleClick(hid) {
     if (state.tool === "cable") { Cables.pickHole(hid); return; }
+    if (state.tool === "dmmv" || state.tool === "dmmcom") { Dmm.placeProbe(hid); return; }
     if (state.tool === "delete") {
       const ce = HOLE_MAP.get(hid);
       if (ce && ce.t === "conn" && Cables.removeAt(hid.split(".")[0])) return;

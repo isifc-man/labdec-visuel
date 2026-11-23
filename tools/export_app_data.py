@@ -21,7 +21,8 @@ def main():
     for pf in sorted((ROOT / "predictions").glob("*.yaml")):
         d = yaml.safe_load(pf.read_text(encoding="utf-8"))
         for c in d.get("circuits", []):
-            preds[c["id"]] = [{"titre": sc.get("titre", ""), "q": sc.get("a_predire", ""), "gbf": sc.get("gbf", {})}
+            preds[c["id"]] = [{"titre": sc.get("titre", ""), "q": sc.get("a_predire", ""), "gbf": sc.get("gbf", {}),
+                               "modif": sc.get("modif", []), "a": sc.get("pourquoi", "")}
                               for sc in c.get("scenarios", []) if sc.get("a_predire")]
     light = {}
     for p in sorted((ROOT / "montages").rglob("*.yaml")):

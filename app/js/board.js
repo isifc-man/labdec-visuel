@@ -168,6 +168,10 @@ function renderPlacedElements() {
     rSvg += `<circle cx="${h1.x}" cy="${h1.y}" r="4" fill="#333" stroke="#fff" stroke-width="1.5"/>`;
     rSvg += `<circle cx="${h2.x}" cy="${h2.y}" r="4" fill="#333" stroke="#fff" stroke-width="1.5"/>`;
   });
+  [["v", "V", "#ef4444"], ["com", "COM", "#111827"]].forEach(([k, lab, col]) => {
+    const h = state.dmm && state.dmm[k] && HOLE_MAP.get(state.dmm[k]); if (!h) return;
+    rSvg += `<circle cx="${h.x}" cy="${h.y}" r="7" fill="${col}" stroke="#fde047" stroke-width="2"/><text x="${h.x + 10}" y="${h.y - 8}" font-size="11" font-weight="700" fill="#fde047" font-family="Arial">${lab}</text>`;
+  });
   document.getElementById("svg-resistors").innerHTML = rSvg;
 
   // Puces

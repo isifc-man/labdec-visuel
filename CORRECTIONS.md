@@ -11,3 +11,5 @@ Une ligne par correction demandée (prof, camarade, relecture). Voir `docs/MODIF
 | 2026-11-23 | relecture | `montages/tp3/A2_seuils.yaml` | VT+ ≈ 1,7 V / VT− ≈ 0,9 V → basculement ≈ 1,3 V, pas d'hystérésis | 1,7/0,9 V correspond à un trigger de Schmitt, pas au 74LS00 (fiche : VIL ≤ 0,8 V, VIH ≥ 2 V) |
 | 2026-11-23 | relecture | `montages/tp3/A_nand.yaml` | « Y ≈ 1,0 V avec LED » → ≈ 3,2 V | avec 1,0 V la LED ne pourrait pas s'allumer |
 | 2026-11-23 | relecture | `app/js/lesson.js` | appareils allumés au chargement → réglés mais éteints | sujet TP2 : « faites vérifier l'alimentation avant d'appuyer sur on » |
+| 2026-11-23 | relecture | `app/js/engine.js` | Sync active seulement si la sortie est ON → Sync indépendante (menu Trigger, ON par défaut) | manuel EDU33210 : Sync activée par défaut, réglée dans [Trigger] ; désactivée elle reste à l'état bas |
+| 2026-11-23 | ajout | `app/js/dmm.js`, `train.js`, `docs.js`, `predictions/tp3_logique.yaml` | multimètre, TP4 blanc, pannes, documentation des appareils, questions TP3 | demandes de l'utilisateur ; manque relevé à l'audit (TP1 B, TP3) |

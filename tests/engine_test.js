@@ -101,5 +101,13 @@ a = run("tp3-C-compteur", { wave: "square", vpp: 5, offset: 2.5 }, P5, s => s.wi
 ok(near(meas(a, "ch2", 0, 2 * a.rec.P).freq, 250, 1), "compteur : Q1 = CLK / 4", meas(a, "ch2", 0, 2 * a.rec.P).freq);
 ok(Object.values(a.rec.leds).every(l => l.avg > 1e-3), "compteur : les deux LED clignotent");
 
+console.log("— multimètre et sortie Sync —");
+a = run("tp1-B1-pont-diviseur", { vpp: 2 }, null, s => { s.wiring.dmm = { v: s.wiring.wires.find(w => w.de === "BNC2.core").vers, com: "TOP-L1-20" }; });
+ok(near(a.rec.dmm.acRms, 2 * 10020 / 10070 * 1000 / 10020 / (2 * Math.SQRT2), 0.0005), "multimètre TRMS sur le pont : Vpp / (2√2)", (a.rec.dmm.acRms * 1e3).toFixed(2) + " mV");
+a = run("tp3-B-bascule-D", { on: false, wave: "square", vpp: 5, offset: 2.5 }, P5);
+ok(!a.rec.dc && near(meas(a, "ch2", 0, 2 * a.rec.P).freq, 500, 1), "sortie 1 du GBF éteinte : la Sync reste active (manuel EDU33210)");
+a = run("tp3-B-bascule-D", { on: true, sync: false, wave: "square", vpp: 5, offset: 2.5 }, P5);
+ok(a.rec.dc, "Sync désactivée (menu Trigger) : plus d'horloge");
+
 console.log(fails ? `\n${fails} ÉCHEC(S)` : "\nTOUS LES TESTS PASSENT");
 process.exit(fails ? 1 : 0);

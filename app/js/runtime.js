@@ -7,7 +7,7 @@ function curCables() { return state.placedCables; }
 // à vide (ou sur 1 MΩ) la vraie tension est ×2 (sujet TP1). En « High Z » l'affichage est la tension à vide.
 function gbfEngine(g) {
   const k = g.load === "50" ? 2 : 1;
-  return { f: g.f, vpp: g.vpp * k, offset: g.offset * k, wave: g.wave, on: g.on };
+  return { f: g.f, vpp: g.vpp * k, offset: g.offset * k, wave: g.wave, on: g.on, sync: g.sync !== false };
 }
 function psuSrc(psu) {
   const v = {};
@@ -16,7 +16,7 @@ function psuSrc(psu) {
 }
 function envFor(cables) { return { holes: HOLES, holeIds: HOLE_IDS, chipsLib: CHIPS_LIB, cables }; }
 function wiringNow() {
-  return { wires: state.placedWires, comps: state.placedComps.filter(c => c.type === "resistor" || c.type === "led"), chips: state.placedChips };
+  return { wires: state.placedWires, comps: state.placedComps.filter(c => c.type === "resistor" || c.type === "led"), chips: state.placedChips, dmm: state.dmm && state.dmm.v && state.dmm.com ? { v: state.dmm.v, com: state.dmm.com } : null };
 }
 function wiringOfSolution(m) {
   return {
@@ -30,7 +30,7 @@ function wiringOfSolution(m) {
 let _cache = { key: null, an: null };
 function getAnalysis() {
   const ge = gbfEngine(state.gbf), ps = psuSrc(state.psu);
-  const key = JSON.stringify([state.placedWires, state.placedComps, state.placedChips, state.placedCables, ge, ps]);
+  const key = JSON.stringify([state.placedWires, state.placedComps, state.placedChips, state.placedCables, ge, ps, state.dmm && [state.dmm.v, state.dmm.com]]);
   if (_cache.key !== key) _cache = { key, an: Engine.analyze(wiringNow(), envFor(curCables()), { gbf: ge, psu: ps }) };
   return _cache.an;
 }
@@ -107,14 +107,16 @@ function refreshAll() {
   if (typeof Dock !== "undefined") Dock.update();
   if (typeof Leds !== "undefined") Leds.update(an);
   if (typeof Lesson !== "undefined") Lesson.refreshSteps();
+  if (typeof Dmm !== "undefined") Dmm.draw(an);
+  if (typeof Train !== "undefined") Train.tick();
   const box = document.getElementById("engine-alerts");
   if (box) {
     const rows = [];
     if (!state.placedCables.length) rows.push(`<div class="alert-row alert-info">🔌 Aucun câble d'appareil posé : clique une prise du GBF / de l'oscillo / de l'alim, puis la douille de la plaque (BNC 1, BNC 2, VB, VC, MASSE).</div>`);
     const usesPsu = state.placedCables.some(c => /^psu\./.test(c.de) || /^psu\./.test(c.vers));
     if (usesPsu && ![1, 2, 3].some(k => state.psu.ch[k].on)) rows.push(`<div class="alert-row alert-info">⏻ L'alim est câblée mais ses sorties sont éteintes : vérifie le câblage, puis touches « On » des voies utilisées.</div>`);
-    const usesGbf = state.placedCables.some(c => /^gbf\./.test(c.de) || /^gbf\./.test(c.vers));
-    if (usesGbf && !state.gbf.on) rows.push(`<div class="alert-row alert-info">⏻ Le GBF est câblé mais sa sortie est éteinte : touche « On/Off » (la sortie Sync suit la sortie).</div>`);
+    const usesMain = state.placedCables.some(c => c.de === "gbf.out1" || c.vers === "gbf.out1");
+    if (usesMain && !state.gbf.on) rows.push(`<div class="alert-row alert-info">⏻ La sortie 1 du GBF est câblée mais éteinte : touche « On/Off » (la sortie Sync, elle, reste active : menu Trigger).</div>`);
     an.warnings.forEach(w => rows.push(`<div class="alert-row alert-warn">⚠️ ${w}</div>`));
     if (!an.supported) an.reasons.forEach(r => rows.push(`<div class="alert-row alert-info">ℹ️ ${r}</div>`));
     an.notes.forEach(n => rows.push(`<div class="alert-row alert-info">ℹ️ ${n}</div>`));

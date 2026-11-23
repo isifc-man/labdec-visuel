@@ -6,9 +6,9 @@ const WIRE_COLORS = { rouge: "#ef4444", noir: "#1f2937", bleu: "#3b82f6", jaune:
 // Valeurs d'usine : NON vérifiées pour le GBF (1 kHz / 100 mVpp supposés) ; sorties éteintes comme sur un banc qu'on vient d'allumer.
 function factoryInstruments() {
   return {
-    gbf: { on: false, wave: "sine", f: 1000, vpp: 0.1, offset: 0, load: "50", menu: "home", page: 1, field: null, buf: "" },
+    gbf: { on: false, sync: true, wave: "sine", f: 1000, vpp: 0.1, offset: 0, load: "50", menu: "home", page: 1, field: null, buf: "" },
     psu: { sel: 1, field: "v", buf: "", ch: { 1: { v: 0, i: 0.1, on: false }, 2: { v: 0, i: 0.1, on: false }, 3: { v: 0, i: 0.1, on: false } } },
-    scope: { running: true, frozen: null, selCh: 1, tdiv: 1e-3, hpos: 0, trigLevel: 0, trigSrc: 1, trigSlope: 1, measPage: 0, cursors: false, cursSel: 0, menu: "home",
+    scope: { running: true, frozen: null, selCh: 1, tdiv: 1e-3, hpos: 0, trigLevel: 0, trigSrc: 1, trigSlope: 1, measPage: 0, cursors: false, cursSel: 0, trigMode: "auto", menu: "home",
       ch: { 1: { on: true, vdiv: 1, pos: 0 }, 2: { on: true, vdiv: 1, pos: 0 } }, curs: { x1: -1.5, x2: 1.5, y1: 2, y2: -2 } },
   };
 }
@@ -37,6 +37,7 @@ const History = (() => {
   function reset() { stack = []; last = snap(); }
   return { track, undo, reset, size: () => stack.length };
 })();
+state.dmm = { v: null, com: null, mode: "dc", type: "trms", bw: 1e5 };
 function saveProgress() { try { localStorage.setItem("labdec.progress", JSON.stringify(state.progress)); } catch (e) { /* ignoré */ } }
 
 // Premier nom libre « R1, R2… » : évite les doublons après suppression

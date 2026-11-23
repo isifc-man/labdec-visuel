@@ -1,0 +1,58 @@
+# TP1 — partie C : impédance interne du GBF. Le plus rapide des montages : 1 résistance, 3 fils.
+# Le GBF (High Z, 4 Vpp) débite dans Rc ; la voie 1 (par le T) lit Uc directement aux bornes.
+id: tp1-C1-impedance-interne
+tp: 1
+titre: "Impédance interne du GBF (Rc variable)"
+objectif: "Mesurer Uc aux bornes de Rc pour plusieurs Rc, tracer Uc = f(Rc) et trouver Rint là où Uc = E/2 (= 2 Vpp)."
+plaque: wish_board_106
+circuit: tp1-C-impedance-interne
+
+composants:
+  Rc: {type: resistor, ohm: 47, etiquette: "Rc (47 Ω au départ, à changer)", a: T1a62, b: T1a57}
+
+fils:
+  - {n: 1, de: BNC1.core,   vers: T1b62,    couleur: rouge, role: "âme du BNC 1 (sortie du GBF) vers le haut de Rc"}
+  - {n: 2, de: BNC1.shield, vers: TOP-L1-3, couleur: noir,  role: "blindage du BNC 1 vers la masse (bus haut gauche)"}
+  - {n: 3, de: T1b57,       vers: TOP-L1-5, couleur: noir,  role: "bas de Rc vers la masse"}
+
+cables:
+  - {id: A, nom: "BNC–BNC", de: gbf.out1, vers: BNC1, role: "GBF (High Z) -> plaque, vers Rc"}
+  - {id: B, nom: "BNC–BNC depuis le T", de: gbf.out1, vers: scope.ch1, via: T, role: "voie 1 : lit Uc directement aux bornes du GBF"}
+tee: {sur: gbf.out1, statut: a_confirmer, preuve: "adaptateur chromé visible sur la sortie 1 du GBF"}
+
+noeuds:
+  UC:  [BNC1.core, T1b62, Rc.a]
+  GND: [BNC1.shield, TOP-L1-3, Rc.b, T1b57, TOP-L1-5]
+
+table_rc: {e_vpp: 4.0, rint: 50, valeurs: [10, 22, 33, 47, 68, 100, 220, 470, 1000]}
+
+etapes_montage:
+  - "Pose Rc : une patte en T1a62, l'autre en T1a57 (cinq rangées d'écart)."
+  - "Fil 1 (rouge) : âme du BNC 1 vers T1b62. Fil 2 (noir) : blindage du BNC 1 vers TOP-L1-3. Fil 3 (noir) : T1b57 vers TOP-L1-5."
+  - "Câble A : GBF sortie 1 → BNC 1 ; câble B : T du GBF → voie 1. GBF : sinus, 4 Vpp, 1 kHz, offset 0, charge « High Z », sortie ON."
+  - "Pour changer Rc : retire seulement les pattes de Rc (fils inchangés) et pose la suivante en T1a62 / T1a57."
+
+instruments:
+  gbf:
+    photo: gbf_ports
+    reglages: "Sinus · 4 Vpp · 1 kHz · offset 0 V · charge High Z · sortie ON"
+    etapes:
+      - {n: 1, cible: btn_waveform,  texte: "Waveform"}
+      - {n: 2, cible: softkey_1,     texte: "Touche à droite de l'écran en face de « Sine »"}
+      - {n: 3, cible: btn_parameter, texte: "Parameter, puis touche en face de « Frequency », « Amplitude » ou « Offset »"}
+      - {n: 4, cible: [keypad_1, keypad_0, keypad_dot], texte: "Pavé : taper 1 puis kHz ; 4 puis Vpp ; 0 puis V"}
+      - {n: 5, cible: btn_ch1_setup, texte: "Setup (Channel 1) : charge « High Z » — chemin exact à vérifier sur ton appareil. Indispensable : l'amplitude affichée = E à vide."}
+      - {n: 6, cible: btn_ch1_onoff, texte: "On/Off (Channel 1) : l'écran doit afficher ON"}
+  scope:
+    photo: scope_front
+    reglages: "Voie 1 seule (jaune) · 500 mV/div à 1 V/div selon Rc · 200 µs/div · déclenchement voie 1, front montant"
+    etapes:
+      - {n: 1, cible: btn_default_setup, texte: "Default Setup"}
+      - {n: 2, cible: btn_ch1,       texte: "Allume la voie 1 ; couplage DC ; sonde 1:1"}
+      - {n: 3, cible: btn_autoscale, texte: "Auto Scale (puis re-règle si Rc change beaucoup l'amplitude)"}
+      - {n: 4, cible: btn_meas,      texte: "Meas : « Cr-cr(1) » pour lire Uc en Vpp"}
+
+pannes:
+  - "Uc = 4 Vpp quel que soit Rc : charge du GBF réglée sur « 50 Ω » ou Rc non reliée à la masse (fil 3)."
+  - "Uc ≈ 0 : fil 1 non enfoncé, ou sortie du GBF OFF."
+  - "Uc très différent du tableau : vérifie la valeur réelle de Rc (code couleurs) et le mode High Z."

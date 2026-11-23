@@ -1,0 +1,15 @@
+# Brochages des puces. Sources : sujet TP2 figure 1 (TL081) ; sujet TP3 et guide banc (74LS00, 74LS74).
+# Convention du projet : encoche vers le HAUT de la plaque (rangées croissantes) = broche 1 en haut à gauche ;
+# on descend à gauche (broches 1..n/2) puis on remonte à droite. Statut : a_confirmer sur la plaque réelle.
+TL081:
+  dip: 8
+  brochage: {1: "offset (inutilisée)", 2: "IN− (entrée inverseuse)", 3: "IN+ (entrée non inverseuse)", 4: "V− (−15 V)", 5: "offset (inutilisée)", 6: "OUT (sortie)", 7: "V+ (+15 V)", 8: "NC"}
+  alimentation: {plus: 7, moins: 4}
+74LS00:
+  dip: 14
+  brochage: {1: "1A", 2: "1B", 3: "1Y", 4: "2A", 5: "2B", 6: "2Y", 7: "GND (0 V)", 8: "3Y", 9: "3A", 10: "3B", 11: "4Y", 12: "4A", 13: "4B", 14: "VCC (+5 V)"}
+  alimentation: {plus: 14, moins: 7}
+74LS74:
+  dip: 14
+  brochage: {1: "1CLR (actif bas)", 2: "1D", 3: "1CLK", 4: "1PRE (actif bas)", 5: "1Q", 6: "1Q̄", 7: "GND (0 V)", 8: "2Q̄", 9: "2Q", 10: "2PRE (actif bas)", 11: "2CLK", 12: "2D", 13: "2CLR (actif bas)", 14: "VCC (+5 V)"}
+  alimentation: {plus: 14, moins: 7}

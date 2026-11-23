@@ -1,0 +1,192 @@
+# TP2 — prédictions d'écran avec les ARTEFACTS de l'AOP (saturation, bande passante, vitesse de montée).
+# Le moteur (tools/predict.py) calcule les courbes ; les textes ne contiennent que des champs {calculés}.
+tp: 2
+titre: "TP2 — Amplificateur opérationnel TL081 (alim ±15 V)"
+globaux: {rout_gbf: 50, r_scope: 1000000}
+tl081:
+  gbw_hz: 4000000      # produit gain-bande typique de la fiche TI : 4 MHz
+  slew_vus: 13         # vitesse de montée typique de la fiche TI : 13 V/µs
+  vsat: 12.5           # fiche TI : ±12 V min, ±13,5 V typ (RL = 10 kΩ) ; ta photo C ≈ ±12 V
+  source: "Fiche TI TL081 (valeurs typiques) — à confirmer dans TA datasheet, comme le demande le sujet."
+
+circuits:
+- id: tp2-A-suiveur
+  titre: "A. Montage suiveur"
+  type: follower
+  schema: follower
+  montage: montages/tp2/A_suiveur.yaml
+  comps: {}
+  bode_f: [1000, 100000, 1000000, 4000000]
+  scenarios:
+  - id: nominal
+    titre: "Fonctionnement normal (1 kHz, 5 Vpp)"
+    gbf: {kind: sine, vpp: 5.0, f: 1000, offset: 0, charge: HighZ}
+    voies: [ve, vs]
+    mesures: [vpp1, vpp2, phase21]
+    a_predire: "Quel rapport Vs/Ve ? Quel déphasage ? Les deux courbes sont-elles distinguables ?"
+    attendu: "Vs = Ve : {vpp_out:.2f} Vpp pour {vpp_in:.2f} Vpp en entrée (rapport {gain:.3f}), déphasage {phase:.1f}°. Les deux courbes ont la même forme ; elles ne sont séparées que par les positions verticales choisies."
+  - id: fc
+    titre: "À la fréquence de coupure : petit signal à 4 MHz"
+    gbf: {kind: sine, vpp: 0.5, f: 4000000, offset: 0, charge: HighZ}
+    voies: [ve, vs]
+    mesures: [vpp1, vpp2, phase21]
+    a_predire: "Le GBP du TL081 est ≈ 4 MHz. Que valent le rapport Vs/Ve et le déphasage à f = GBP pour un suiveur ?"
+    attendu: "Vs/Ve = 1/√2 ≈ {gain:.2f} (soit {vpp_out:.2f} Vpp pour {vpp_in:.2f} Vpp), déphasage ≈ {phase:.0f}° (retard). C'est la fréquence de coupure à −3 dB du suiveur : f_c = GBP / 1."
+    artefact: "Amplitude réduite et courbe de sortie en retard : limite de BANDE PASSANTE. Le signal est assez petit pour que la vitesse de montée ne gêne pas ({slew_need:.1f} V/µs demandés < {sr:.0f} V/µs)."
+  - id: slew_sine
+    titre: "Artefact : gros signal à 2 MHz — le sinus devient un triangle"
+    gbf: {kind: sine, vpp: 5.0, f: 2000000, offset: 0, charge: HighZ}
+    voies: [ve, vs]
+    mesures: [vpp1, vpp2, phase21]
+    a_predire: "5 Vpp à 2 MHz : la sortie suit-elle ? Quelle forme ? Quelle amplitude ?"
+    attendu: "Sortie triangulaire d'amplitude réduite : {vpp_out:.2f} Vpp au lieu de {vpp_in:.2f} Vpp."
+    artefact: "VITESSE DE MONTÉE (slew rate) : il faudrait {slew_need:.0f} V/µs pour suivre le sinus, l'AOP ne sait pas dépasser {sr:.0f} V/µs → la pente est constante, donc un triangle. Ce n'est PAS la bande passante : à 2 MHz le gain petit signal serait encore {gain_bode:.2f}."
+  - id: slew_square
+    titre: "Artefact : créneau 500 kHz — fronts inclinés"
+    gbf: {kind: square, vpp: 5.0, f: 500000, offset: 0, charge: HighZ}
+    voies: [ve, vs]
+    mesures: [vpp1, vpp2]
+    a_predire: "Les fronts de Vs sont-ils verticaux comme ceux de Ve ?"
+    attendu: "Ve a des fronts verticaux ; Vs a des fronts en rampe de pente ≈ {sr:.0f} V/µs : une transition de {vpp_in:.1f} V dure ≈ {tr_us:.2f} µs."
+    artefact: "Trapèze : la durée d'un front = amplitude / vitesse de montée. À fréquence plus élevée les deux fronts se rejoignent et le créneau devient un triangle."
+
+- id: tp2-B1-inverseur
+  titre: "B. Amplificateur inverseur, gain −20"
+  type: inverting
+  schema: inverting
+  montage: montages/tp2/B1_inverseur.yaml
+  comps:
+    R1: {ohm: 1000,  etiquette: "1 kΩ"}
+    R2: {ohm: 20000, etiquette: "20 kΩ (2 × 10 kΩ en série)"}
+  bode_f: [1000, 10000, 100000, 190000, 1000000]
+  scenarios:
+  - id: nominal
+    titre: "Fonctionnement normal : Ve = 0,4 Vpp, 1 kHz"
+    gbf: {kind: sine, vpp: 0.4, f: 1000, offset: 0, charge: HighZ}
+    voies: [ve, vs]
+    mesures: [vpp1, vpp2, phase21]
+    a_predire: "Quelle amplitude pour Vs ? Vs est-il en phase avec Ve ? Ve mesuré est-il exactement 0,4 Vpp ?"
+    attendu: "Vs = −20 · Ve : {vpp_out:.2f} Vpp, en OPPOSITION de phase ({phase:.0f}°). Ve mesuré à l'oscillo = {vpp_in:.3f} Vpp et non 0,400 Vpp."
+    artefact: "Le GBF règle « High Z » croit débiter dans l'infini, mais l'entrée du montage est R1 = 1 kΩ : le pont 50 Ω / 1 kΩ retire ≈ {perte_pct:.1f} % à Ve. Le gain mesuré Vs/Ve reste −20."
+  - id: saturation
+    titre: "Artefact : Ve = 2 Vpp — la sortie sature"
+    gbf: {kind: sine, vpp: 2.0, f: 1000, offset: 0, charge: HighZ}
+    voies: [ve, vs]
+    mesures: [vpp1, vpp2]
+    a_predire: "Avec ce gain, quelle amplitude 'théorique' pour Vs ? Peut-elle l'atteindre ?"
+    attendu: "Vs théorique = {vpp_demand:.0f} Vpp ; Vs observé = {vpp_out:.1f} Vpp (≈ ±{vsat:.1f} V) : les sommets sont aplatis."
+    artefact: "SATURATION : la sortie ne peut pas dépasser l'alimentation moins la marge interne (fiche : ±12 V min, ±13,5 V typ avec ±15 V). Ve et Vs ne sont plus proportionnels. Ton ancienne photo C (≈ ±12 V) est ce cas."
+  - id: fc
+    titre: "À la fréquence de coupure (≈ 190 kHz)"
+    gbf: {kind: sine, vpp: 0.4, f: 190000, offset: 0, charge: HighZ}
+    voies: [ve, vs]
+    mesures: [vpp1, vpp2, phase21]
+    a_predire: "À la coupure à −3 dB, que valent le rapport Vs/Ve et le déphasage de Vs ?"
+    attendu: "Vs/Ve = 20/√2 ≈ {gain:.1f} ; déphasage ≈ {phase:.0f}° (180° de l'inverseur, moins 45° de retard)."
+    artefact: "f_c = GBP / (1 + R2/R1) = {fc:.0f} Hz : plus le gain est grand, plus la bande passante est étroite (GBP constant)."
+
+- id: tp2-B2-non-inverseur
+  titre: "B. Amplificateur non inverseur, gain +10"
+  type: noninverting
+  schema: noninverting
+  montage: montages/tp2/B2_non_inverseur.yaml
+  comps:
+    R1: {ohm: 1000, etiquette: "1 kΩ"}
+    R2: {ohm: 9100, etiquette: "9,1 kΩ (hors E12 : voir note)"}
+  bode_f: [1000, 10000, 100000, 396000, 1000000]
+  scenarios:
+  - id: nominal
+    titre: "Fonctionnement normal : Ve = 1 Vpp, 1 kHz"
+    gbf: {kind: sine, vpp: 1.0, f: 1000, offset: 0, charge: HighZ}
+    voies: [ve, vs]
+    mesures: [vpp1, vpp2, phase21]
+    a_predire: "Quelle amplitude pour Vs ? En phase ou en opposition ?"
+    attendu: "Vs = 10,1 · Ve : {vpp_out:.2f} Vpp, en phase ({phase:.0f}°)."
+  - id: saturation
+    titre: "Artefact : Ve = 5 Vpp (réglage du suiveur oublié)"
+    gbf: {kind: sine, vpp: 5.0, f: 1000, offset: 0, charge: HighZ}
+    voies: [ve, vs]
+    mesures: [vpp1, vpp2]
+    a_predire: "Si tu gardes les 5 Vpp du suiveur, que verra-t-on sur Vs ?"
+    attendu: "Vs théorique = {vpp_demand:.0f} Vpp ; observé : {vpp_out:.1f} Vpp, quasi un créneau à ±{vsat:.1f} V."
+    artefact: "SATURATION forte : le sinus est écrêté si fort que la sortie ressemble à un créneau, avec seulement de courtes montées. C'est l'erreur la plus fréquente en passant du TP2-A au TP2-B."
+  - id: fc
+    titre: "À la fréquence de coupure (≈ 396 kHz)"
+    gbf: {kind: sine, vpp: 1.0, f: 396000, offset: 0, charge: HighZ}
+    voies: [ve, vs]
+    mesures: [vpp1, vpp2, phase21]
+    a_predire: "Quel est le gain en tension à f_c ? Quel est le déphasage ?"
+    attendu: "Gain ≈ 10,1/√2 ≈ {gain:.1f}, déphasage ≈ {phase:.0f}°."
+    artefact: "f_c = GBP / gain = {fc:.0f} Hz. Compare à l'inverseur (≈ 190 kHz) : même GBP, gains de bruit différents (1 + R2/R1 = 21 contre 10,1)."
+  - id: slew
+    titre: "Artefact : créneau 2 Vpp à 100 kHz — sortie trapézoïdale"
+    gbf: {kind: square, vpp: 2.0, f: 100000, offset: 0, charge: HighZ}
+    voies: [ve, vs]
+    mesures: [vpp1, vpp2]
+    a_predire: "Le gain est 10 : Vs doit valoir 20 Vpp. Les fronts sont-ils nets ?"
+    attendu: "Vs ≈ {vpp_out:.1f} Vpp mais avec des fronts inclinés : {tr_us:.2f} µs par transition."
+    artefact: "VITESSE DE MONTÉE : 20 V à {sr:.0f} V/µs ≈ 1,5 µs. Aux amplitudes de sortie élevées, la vitesse de montée limite avant la bande passante."
+
+- id: tp2-C-association
+  titre: "C. Association : non inverseur (+10) puis inverseur (−20)"
+  type: association
+  schema: association
+  montage: montages/tp2/C_association.yaml
+  comps:
+    R1: {ohm: 1000,  etiquette: "1 kΩ"}
+    R2: {ohm: 9100, etiquette: "9,1 kΩ"}
+    R3: {ohm: 1000,  etiquette: "1 kΩ"}
+    R4: {ohm: 20000, etiquette: "20 kΩ"}
+  bode_f: [1000, 10000, 100000, 160000, 1000000]
+  scenarios:
+  - id: nominal
+    titre: "Gain total ≈ −202 : Ve = 40 mVpp (surtout pas 5 Vpp !)"
+    gbf: {kind: sine, vpp: 0.04, f: 1000, offset: 0, charge: HighZ}
+    voies: [ve, vs]
+    mesures: [vpp1, vpp2, phase21]
+    a_predire: "Gain total ? Amplitude de Vs ? Phase ?"
+    attendu: "Gain total = 10,1 × (−20) ≈ −202 : Vs = {vpp_out:.1f} Vpp, en opposition de phase ({phase:.0f}°)."
+    artefact: "Ve doit rester ≤ ≈ 0,12 Vpp (ici 40 mVpp) : au-delà, la sortie sature (limite ≈ ±{vsat:.1f} V)."
+  - id: etage1
+    titre: "Chaque étage : V1 (sortie de l'étage 1) et Vs"
+    gbf: {kind: sine, vpp: 0.04, f: 1000, offset: 0, charge: HighZ}
+    voies: [v1, vs]
+    mesures: [vpp1, vpp2, phase21]
+    a_predire: "Quelle amplitude au point intermédiaire V1 ? Les deux étages inversent-ils ?"
+    attendu: "V1 = +10 · Ve ≈ {vpp_v1:.2f} Vpp en phase avec Ve ; Vs = −20 · V1 ≈ {vpp_out:.1f} Vpp. Seul le 2e étage inverse."
+  - id: fc
+    titre: "Fréquence de coupure de l'association (≈ 160 kHz)"
+    gbf: {kind: sine, vpp: 0.04, f: 160000, offset: 0, charge: HighZ}
+    voies: [ve, vs]
+    mesures: [vpp1, vpp2, phase21]
+    a_predire: "La coupure de l'association est-elle égale à celle du 1er étage, du 2e, ou plus basse ?"
+    attendu: "f_c ≈ {fc:.0f} Hz : plus basse que chaque étage seul (396 kHz et 190 kHz) car les deux pôles s'additionnent. Déphasage ≈ {phase:.0f}°."
+
+- id: tp2-D-soustracteur
+  titre: "D. Soustracteur (bonus) : Vs = V2 − V1"
+  type: subtractor
+  schema: subtractor
+  montage: montages/tp2/D_soustracteur.yaml
+  comps:
+    R1: {ohm: 10000, etiquette: "10 kΩ"}
+    R2: {ohm: 10000, etiquette: "10 kΩ"}
+    R3: {ohm: 10000, etiquette: "10 kΩ"}
+    R4: {ohm: 10000, etiquette: "10 kΩ"}
+  scenarios:
+  - id: v1_continu
+    titre: "V1 = +1 V continu, V2 = sinus 1 Vpp"
+    gbf: {kind: sine, vpp: 1.0, f: 1000, offset: 0, charge: HighZ}
+    v1: {kind: dc, v: 1.0}
+    voies: [ve, vs]
+    mesures: [vpp1, vpp2]
+    a_predire: "Que vaut la valeur moyenne de Vs ? Son amplitude ?"
+    attendu: "Vs = V2 − V1 : même amplitude que V2 ({vpp_out:.2f} Vpp) mais décalée de −1 V (valeur moyenne ≈ −1 V). Ve ci-dessous = V2."
+  - id: identiques
+    titre: "V1 = V2 : le résidu n'est pas nul (tolérances ±5 %, pire cas)"
+    gbf: {kind: sine, vpp: 1.0, f: 1000, offset: 0, charge: HighZ}
+    ohm: {R1: 9500, R2: 10500, R3: 10500, R4: 9500}
+    voies: [ve, vs]
+    mesures: [vpp1, vpp2]
+    a_predire: "Vs = 0 en théorie. Va-t-on voir une ligne plate ?"
+    attendu: "Vs ≠ 0 : {vpp_out:.3f} Vpp environ ({res_pct:.0f} % de Ve) avec des résistances à ±5 % montées au pire cas."
+    artefact: "Rejet du mode commun limité par l'appariement des résistances (E12 = ±5 %) : ce n'est pas un défaut de câblage. Avec 4 résistances identiques exactes le résidu serait nul."

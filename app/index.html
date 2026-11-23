@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LABDEC_VISUEL — banc d'électronique</title>
+<style>
+/*@@CSS@@*/
+</style>
+</head>
+<body>
+<header class="lv-top">
+  <h1>LABDEC_VISUEL</h1><span id="cur-title"></span><span class="sp"></span>
+  <button class="btn" id="btn-zero" title="Retire tout de la plaque (les appareils restent réglés)">⟲ de zéro</button>
+  <button class="btn" id="btn-undo">⎌ annuler</button>
+  <button class="btn" id="btn-factory" title="GBF, alim et oscillo remis aux valeurs d'usine, sorties éteintes">appareils d'usine</button>
+</header>
+<div class="lv-main">
+  <nav id="lv-nav"><h2>MONTAGES</h2><div id="tree"></div><div id="free">○ Mode libre</div></nav>
+
+  <section id="lv-centre">
+    <div id="subject-bar"><div id="subject-text"></div><button class="btn sm" id="subject-toggle" title="Réduire / agrandir le sujet">sujet ▾</button></div>
+    <div id="instruments">
+      <div class="inst" data-inst="scope"><div class="cap">OSCILLOSCOPE</div><div id="face-scope"></div></div>
+      <div class="inst" data-inst="gbf"><div class="cap">GÉNÉRATEUR (GBF)</div><div id="face-gbf"></div></div>
+      <div class="inst" data-inst="psu"><div class="cap">ALIMENTATION</div><div id="face-psu"></div></div>
+    </div>
+    <div id="boardzone">
+      <div id="boardbar">
+        <div class="tool-group">
+          <button class="t-btn active" data-tool="wire">Fil</button><button class="t-btn" data-tool="resistor">Résistance</button>
+          <button class="t-btn" data-tool="chip">Puce</button><button class="t-btn" data-tool="cable" title="Câble BNC ou banane entre un appareil et la plaque">Câble d'appareil</button><button class="t-btn" data-tool="delete">Gomme</button>
+        </div>
+        <div>
+          <span class="color-dot active" data-color="rouge" style="background:#ef4444" title="Rouge"></span>
+          <span class="color-dot" data-color="noir" style="background:#1f2937;border-color:#444" title="Noir (masse)"></span>
+          <span class="color-dot" data-color="bleu" style="background:#3b82f6" title="Bleu"></span>
+          <span class="color-dot" data-color="jaune" style="background:#eab308" title="Jaune"></span>
+          <span class="color-dot" data-color="orange" style="background:#f97316" title="Orange"></span>
+          <span class="color-dot" data-color="vert" style="background:#22c55e" title="Vert"></span>
+        </div>
+        <div id="resistor-select-box" style="display:none;gap:4px;align-items:center"><span class="mut">R :</span>
+          <select id="resistor-val-input"><option value="100">100 Ω</option><option value="330">330 Ω</option><option value="820">820 Ω</option><option value="1000" selected>1 kΩ</option><option value="8200">8,2 kΩ</option><option value="10000">10 kΩ</option></select></div>
+        <div id="chip-select-box" style="display:none;gap:4px;align-items:center"><span class="mut">Puce :</span>
+          <select id="chip-val-input"><option value="TL081">TL081</option><option value="74LS00">74LS00</option><option value="74LS74">74LS74</option></select></div>
+        <div id="cable-msg"></div>
+        <div id="active-pointer-info">Survole un trou de la plaque.</div>
+      </div>
+      <div id="board-host-split"></div>
+    </div>
+  </section>
+
+  <aside>
+    <div id="tabs">
+      <button class="on" data-p="sujet">Sujet</button><button data-p="quest">Questions</button><button data-p="compo">Composants</button>
+      <button data-p="corr">Corrigé</button><button data-p="etat">État</button>
+    </div>
+    <div class="pane on" id="p-sujet"></div>
+    <div class="pane" id="p-quest"></div>
+    <div class="pane" id="p-compo"></div>
+    <div class="pane" id="p-corr"></div>
+    <div class="pane" id="p-etat">
+      <h4>Trou pointé</h4>
+      <div><b id="insp-addr" style="font-family:monospace;color:var(--acc)">--</b> <span id="insp-badge" class="mut"></span><div id="insp-desc" class="mut">Survole un trou.</div></div>
+      <h4>Moteur</h4><div id="engine-alerts"></div>
+      <h4>Nœuds à relier</h4><div id="checklist-box"></div>
+      <h4>Alertes de câblage</h4><div id="alerts-box"></div>
+      <h4>Liaisons posées (<span id="placed-num">0</span>)</h4>
+      <table class="placed-table"><thead><tr><th>#</th><th>Type</th><th>De</th><th>Vers</th><th></th></tr></thead><tbody id="placed-tbody"></tbody></table>
+    </div>
+    <div id="statusline" title="Ouvrir l'onglet État"><span>Nœuds</span><span id="score-tag">0 / 0</span></div>
+  </aside>
+</div>
+<div id="zoom-backdrop"></div>
+<div id="dock" title="Écran de l'oscilloscope (suit le défilement)"><div class="dock-bar"><span>ÉCRAN OSCILLO</span><button class="btn sm" id="dock-up">↑ appareils</button></div><canvas id="dock-canvas" width="880" height="530"></canvas></div>
+<!--@@BOARD_SVG@@-->
+<script>
+/*@@JS@@*/
+</script>
+</body>
+</html>

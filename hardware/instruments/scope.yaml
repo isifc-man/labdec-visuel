@@ -1,0 +1,36 @@
+# Oscilloscope Keysight DSOX1202A (2 voies, 70 MHz, 2 GSa/s).
+id: scope
+modele: "Keysight DSOX1202A"
+entrees: {ch1: "BNC jaune", ch2: "BNC verte", ext_trig: "BNC bleue", impedance: "1 MΩ ≈ 16 pF", max: "150 V RMS (CH1/CH2)"}
+photos:
+  scope_front:
+    file: scope_tp2_b.jpg
+    w: 1600
+    h: 1200
+    zones:
+      btn_autoscale: [1058, 235]
+      btn_default_setup: [1056, 297]
+      knob_horiz: [1170, 265]
+      btn_run_stop: [1500, 205]
+      btn_single: [1488, 298]
+      btn_meas: [1270, 393]
+      btn_cursors: [1364, 392]
+      btn_ch1: [1352, 536]
+      btn_ch2: [1346, 597]
+      knob_vert: [1245, 550]
+      knob_trig_level: [1455, 553]
+      btn_trig_menu: [1441, 621]
+      bnc_ch1: [1060, 765]
+      bnc_ch2: [1210, 768]
+      ecran: [450, 450]
+  scope_ports:
+    file: scope_ports.jpg
+    w: 2048
+    h: 1536
+    zones:
+      bnc_ch1: [625, 880]
+      bnc_ch2: [1090, 880]
+      bnc_ext: [1530, 880]
+notes:
+  - "Auto Scale range chaque voie dans sa propre bande de l'écran : voie 1 en haut, voie 2 en bas (offsets ≈ ±2 carreaux)."
+  - "Bas de l'écran après Auto Scale : offset, couplage (DC) et sonde (1,00:1) de chaque voie — ce ne sont PAS des mesures."

@@ -1,0 +1,128 @@
+# TP1 — prédictions d'écran : GBF direct, pont diviseur, impédance interne, LED.
+tp: 1
+titre: "TP1 — Découverte de l'appareillage de mesure"
+globaux: {rout_gbf: 50, r_scope: 1000000}
+tl081: {gbw_hz: 4000000, slew_vus: 13, vsat: 12.5}
+
+circuits:
+- id: tp1-A1-gbf-direct
+  titre: "A. GBF branché directement sur l'oscilloscope"
+  type: direct
+  schema: direct
+  comps: {}
+  scenarios:
+  - id: highz
+    titre: "Charge réglée sur « High Z » (le bon réglage)"
+    gbf: {kind: sine, vpp: 2.0, f: 1000, offset: 0, charge: HighZ}
+    voies: [ve]
+    mesures: [vpp1, freq1]
+    a_predire: "Quelle amplitude l'oscillo mesure-t-il pour un GBF réglé à 2 Vpp ?"
+    attendu: "L'oscillo affiche {vpp_in:.2f} Vpp : égal à l'affichage du GBF, car l'oscillo (1 MΩ) ne charge presque pas la sortie 50 Ω."
+  - id: cinquante
+    titre: "Charge laissée sur « 50 Ω » alors que l'oscillo fait 1 MΩ"
+    gbf: {kind: sine, vpp: 2.0, f: 1000, offset: 0, charge: "50"}
+    voies: [ve]
+    mesures: [vpp1, freq1]
+    a_predire: "Le GBF affiche toujours 2 Vpp. Que mesure l'oscillo ?"
+    attendu: "L'oscillo affiche {vpp_in:.2f} Vpp, soit le DOUBLE de l'affichage du GBF."
+    artefact: "En mode « 50 Ω » le GBF suppose une charge de 50 Ω qui divise la tension par 2 ; il génère donc 2 × plus à vide. Avec 1 MΩ il n'y a pas de division : tu vois la tension complète. C'est la question A.3 du sujet."
+
+- id: tp1-B-pont-diviseur
+  titre: "B. Pont diviseur de tension par 10"
+  type: divider
+  schema: divider
+  montage: montages/tp1/B1_pont_diviseur.yaml
+  c_charge_pf: 116   # hypothèse : 16 pF (oscillo) + ≈ 100 pF (câble BNC de 1 m)
+  comps:
+    R1: {ohm: 9020, etiquette: "8,2 kΩ + 820 Ω"}
+    R2: {ohm: 1000, etiquette: "1 kΩ"}
+  bode_f: [1000, 100000, 1000000, 10000000]
+  scenarios:
+  - id: nominal
+    titre: "Montage « à vide » : 2 Vpp, 1 kHz"
+    gbf: {kind: sine, vpp: 2.0, f: 1000, offset: 0, charge: HighZ}
+    voies: [ve, vs]
+    mesures: [vpp1, vpp2, phase21]
+    a_predire: "Quelle amplitude pour Us ? Us est-il en phase avec Ue ?"
+    attendu: "Us = Ue · R2/(R1+R2) ≈ {vpp_out:.3f} Vpp (rapport {gain:.4f}), en phase ({phase:.1f}°)."
+  - id: f1M
+    titre: "Limite : 1 MHz — Us commence à diminuer"
+    gbf: {kind: sine, vpp: 2.0, f: 1000000, offset: 0, charge: HighZ}
+    voies: [ve, vs]
+    mesures: [vpp1, vpp2, phase21]
+    a_predire: "Le rapport Us/Ue est-il toujours 0,1 à 1 MHz ?"
+    attendu: "Rapport {gain:.4f} (au lieu de 0,0998), déphasage {phase:.0f}° (retard)."
+    artefact: "La résistance de sortie du pont (R1 ∥ R2 ≈ 900 Ω) forme un filtre RC avec la capacité du câble et de l'oscillo (≈ {c_pf:.0f} pF, hypothèse) : coupure ≈ {fc_k:.2f} MHz."
+  - id: f10M
+    titre: "Limite : 10 MHz — Us s'effondre et se décale"
+    gbf: {kind: sine, vpp: 2.0, f: 10000000, offset: 0, charge: HighZ}
+    voies: [ve, vs]
+    mesures: [vpp1, vpp2, phase21]
+    a_predire: "À 10 MHz, que reste-t-il de Us ?"
+    attendu: "Us ≈ {vpp_out:.3f} Vpp seulement (rapport {gain:.4f}), déphasage ≈ {phase:.0f}°. Les valeurs de R ne suffisent plus à prédire : le câble compte."
+    artefact: "Ce n'est pas une erreur de montage : c'est la limite à haute fréquence. Le multimètre, lui, devient peu fiable bien avant (question du sujet)."
+  - id: cinquante
+    titre: "Piège : GBF resté en « 50 Ω »"
+    gbf: {kind: sine, vpp: 2.0, f: 1000, offset: 0, charge: "50"}
+    voies: [ve, vs]
+    mesures: [vpp1, vpp2]
+    a_predire: "Ue et Us sont-ils encore 2 Vpp et 0,2 Vpp ?"
+    attendu: "Ue ≈ {vpp_in:.2f} Vpp et Us ≈ {vpp_out:.2f} Vpp : tout est doublé, le rapport reste {gain:.4f}."
+
+- id: tp1-C-impedance-interne
+  titre: "C. Impédance interne du GBF"
+  type: internal
+  schema: internal
+  montage: montages/tp1/C1_impedance_interne.yaml
+  comps:
+    Rc: {ohm: 47, etiquette: "Rc = 47 Ω"}
+  scenarios:
+  - id: rc47
+    titre: "Rc = 47 Ω (E = 4 Vpp, High Z)"
+    gbf: {kind: sine, vpp: 4.0, f: 1000, offset: 0, charge: HighZ}
+    voies: [ve]
+    mesures: [vpp1, freq1]
+    a_predire: "Uc = E · Rc/(Rc + Rint) avec Rint = 50 Ω : que vaut Uc ?"
+    attendu: "Uc ≈ {vpp_in:.2f} Vpp : presque E/2, car Rc est proche de Rint (50 Ω)."
+  - id: rc1000
+    titre: "Rc = 1 kΩ"
+    gbf: {kind: sine, vpp: 4.0, f: 1000, offset: 0, charge: HighZ}
+    ohm: {Rc: 1000}
+    voies: [ve]
+    mesures: [vpp1, freq1]
+    a_predire: "Et pour Rc = 1 kΩ, plus grande que Rint ?"
+    attendu: "Uc ≈ {vpp_in:.2f} Vpp : proche de E = 4 Vpp. Source quasi idéale quand Rc ≫ Rint."
+  - id: rc10
+    titre: "Rc = 10 Ω"
+    gbf: {kind: sine, vpp: 4.0, f: 1000, offset: 0, charge: HighZ}
+    ohm: {Rc: 10}
+    voies: [ve]
+    mesures: [vpp1, freq1]
+    a_predire: "Et si Rc est plus petite que Rint ?"
+    attendu: "Uc ≈ {vpp_in:.2f} Vpp seulement : le GBF « s'écroule » sur une charge faible."
+
+- id: tp1-D-led
+  titre: "D. LED"
+  type: led
+  schema: led
+  montage: montages/tp1/D1_led.yaml
+  comps:
+    R: {ohm: 330, etiquette: "330 Ω"}
+  led: {vf: 1.9, i_ref: 0.008, nvt: 0.1}    # LED rouge supposée : 1,9 V à 8 mA
+  scenarios:
+  - id: hz1
+    titre: "Carré 0–5 V à 1 Hz : la LED clignote"
+    gbf: {kind: square, vpp: 5.0, f: 1, offset: 2.5, charge: HighZ}
+    settle_periods: 1
+    voies: [ve, vs]
+    mesures: [max1, max2, freq1]
+    a_predire: "Quelle tension voit-on sur la LED quand elle est allumée ? Est-ce 5 V ?"
+    attendu: "La LED fixe sa tension à ≈ {max_out:.2f} V quand elle conduit ; Ve (côté GBF) retombe à ≈ {vpp_in:.2f} V car le GBF a 50 Ω de résistance interne."
+    artefact: "La tension sur la LED ne suit pas le créneau de 5 V : elle est écrêtée à sa tension de seuil. Le reste tombe dans R et dans la résistance interne du GBF. Courant ≈ {i_ma:.1f} mA."
+  - id: khz1
+    titre: "Même circuit à 1 kHz : la LED paraît allumée en continu"
+    gbf: {kind: square, vpp: 5.0, f: 1000, offset: 2.5, charge: HighZ}
+    voies: [ve, vs]
+    mesures: [max1, max2, freq1]
+    a_predire: "Que change-t-il sur l'écran quand on augmente la fréquence ? Et pour l'œil ?"
+    attendu: "L'écran montre la même forme (tension écrêtée à ≈ {max_out:.2f} V) mais 1000 fois plus vite. L'œil ne distingue plus les clignotements au-delà de quelques dizaines de Hz : la LED semble allumée, à une luminosité moyenne plus faible."

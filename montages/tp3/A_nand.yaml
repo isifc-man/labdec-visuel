@@ -1,0 +1,163 @@
+# GÉNÉRÉ par un script de session puis relu : YAML = source de vérité. Placement = proposition (sens a-e/f-j, rangée 1 en bas, bus haut : à confirmer sur la plaque).
+id: tp3-A-nand
+tp: 3
+titre: A. Porte NAND 74LS00 + LED (table de vérité)
+objectif: 'Y = NON(A·B) : A et B à +5 V → LED éteinte ; une entrée à 0 V → LED allumée. Mesure VOH/VOL avec et sans LED.'
+plaque: wish_board_106
+puces:
+- ref: U1
+  modele: 74LS00
+  bloc: T1
+  rangee_broche1: 50
+  encoche: haut
+composants:
+  R:
+    type: resistor
+    ohm: 330
+    etiquette: 330 Ω (orange-orange-marron)
+    a: T1h48
+    b: T1h52
+  LED:
+    type: led
+    etiquette: LED (patte longue = anode)
+    a: T1i52
+    k: T1i56
+fils:
+- n: 1
+  de: BNC2.core
+  vers: T1i48
+  couleur: orange
+  role: âme du BNC 2 (Vs vers voie 2)
+- n: 2
+  de: BNC2.shield
+  vers: TOP-L1-4
+  couleur: noir
+  role: blindage BNC 2 -> masse
+- n: 3
+  de: T1f50
+  vers: N1-1u-50
+  couleur: rouge
+  role: 'entrée A (broche 1) à +5 V (= 1). Pour 0 : déplacer sur TOP-L1'
+- n: 4
+  de: T1f49
+  vers: N1-1u-49
+  couleur: rouge
+  role: entrée B (broche 2) à +5 V
+- n: 5
+  de: T1b50
+  vers: N2-1u-50
+  couleur: rouge
+  role: broche 14 (VCC) vers +5 V
+- n: 6
+  de: T1f44
+  vers: TOP-L1-5
+  couleur: noir
+  role: broche 7 (GND) vers 0 V
+- n: 7
+  de: T1h56
+  vers: TOP-L1-6
+  couleur: noir
+  role: cathode de la LED (patte courte) à la masse
+- n: 8
+  de: VC.main
+  vers: N2-1u-62
+  couleur: rouge
+  role: '+5 V : douille VC vers rail N2 col. 1'
+- n: 9
+  de: N2-1u-61
+  vers: N1-1u-61
+  couleur: rouge
+  role: lien du rail +5 V N2 vers N1
+- n: 10
+  de: MASSE.main
+  vers: TOP-L1-1
+  couleur: turquoise
+  role: '0 V : douille MASSE vers bus haut'
+cables:
+- id: A
+  nom: BNC–BNC
+  de: scope.ch2
+  vers: BNC2
+  role: 'voie 2 : mesure de Y'
+- id: D
+  nom: câble banane
+  de: psu.ch1_plus
+  vers: VC
+  role: +5 V (voie 1 +) -> douille VC
+- id: E
+  nom: câble banane
+  de: psu.ch1_moins
+  vers: MASSE
+  role: 0 V (voie 1 −) -> douille MASSE
+noeuds:
+  Y:
+  - U1.3
+  - BNC2.core
+  - T1i48
+  - R.a
+  - T1h48
+  LEDA:
+  - R.b
+  - LED.a
+  - T1h52
+  - T1i52
+  VCC:
+  - U1.14
+  - U1.1
+  - U1.2
+  - VC.main
+  - N1-1u-50
+  - N2-1u-50
+  GND:
+  - U1.7
+  - T1f44
+  - TOP-L1-5
+  - BNC2.shield
+  - TOP-L1-4
+  - LED.k
+  - T1h56
+  - TOP-L1-6
+  - MASSE.main
+  - TOP-L1-1
+etapes_montage:
+- Alim +5 V réglée et vérifiée AVANT de la brancher (jamais plus de 5,25 V sur un 74LS).
+- 'Puce 74LS00 à cheval, encoche en HAUT, broche 1 en T1j50. Fils 5 et 6 : broche 14 → +5 V, broche 7 → 0 V.'
+- 'Sortie Y = broche 3 (rangée 48) : R 330 Ω de T1h48 à T1h52 ; LED anode (patte longue) T1i52, cathode T1i56 ; fil 7 : cathode à la masse.'
+- 'Entrées A, B : fils 3 et 4 sur le rail +5 V ; déplace-les sur le bus masse pour tester les 4 combinaisons.'
+- 'Mesure Y avec la voie 2 : LED branchée, puis LED retirée (« à vide »).'
+instruments:
+  psu:
+    photo: psu_ports
+    reglages: Voie 1 = 5,00 V (6 V max) · limite 0,1 A · ON après câblage
+    etapes:
+    - n: 1
+      cible: ch1_plus
+      texte: 'Voie 1 : régler 5,00 V, limite de courant 0,1 A'
+    - n: 2
+      cible: btn_on_1
+      texte: 'ON : lire 5,00 V à l''écran'
+  scope:
+    photo: scope_front
+    reglages: 'Voie 2 : 1 V/div · base de temps indifférente (DC) · mesure Moyenne voie 2'
+    etapes:
+    - n: 1
+      cible: btn_default_setup
+      texte: Default Setup
+    - n: 2
+      cible:
+      - btn_ch1
+      - btn_ch2
+      texte: Voies 1 et 2 allumées, couplage DC, sonde 1:1
+    - n: 3
+      cible: knob_horiz
+      texte: Base de temps selon le montage
+    - n: 4
+      cible: btn_trig_menu
+      texte: 'Trigger : source voie 1, front montant'
+    - n: 5
+      cible: btn_meas
+      texte: 'Meas : Cr-cr voies 1 et 2, fréquence ; curseurs si besoin'
+pannes:
+- 'LED jamais allumée : à l''envers (patte longue côté R) ou puce non alimentée (broches 7 et 14).'
+- 'Y ≈ 1,0 V avec LED : normal (charge) ; ≈ 3,4 V à vide (VOH typ.).'
+- 'Rien ne marche : strap/lien +5 V (fil 9) oublié → le rail N1 n''est pas alimenté.'

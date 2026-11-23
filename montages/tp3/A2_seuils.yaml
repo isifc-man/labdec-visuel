@@ -1,0 +1,183 @@
+# GÉNÉRÉ par un script de session puis relu : YAML = source de vérité. Placement = proposition (sens a-e/f-j, rangée 1 en bas, bus haut : à confirmer sur la plaque).
+id: tp3-A2-seuils
+tp: 3
+titre: 'A2. NAND en inverseur : tensions de basculement (triangle 0–5 V)'
+objectif: 'GBF triangle 5 Vpp offset 2,5 V sur A ; B à +5 V ; Y sur la voie 2. Curseurs : VT+ ≈ 1,7 V, VT− ≈ 0,9 V (datasheet).'
+plaque: wish_board_106
+puces:
+- ref: U1
+  modele: 74LS00
+  bloc: T1
+  rangee_broche1: 50
+  encoche: haut
+composants: {}
+fils:
+- n: 1
+  de: BNC1.core
+  vers: T1g50
+  couleur: rouge
+  role: âme du BNC 1 (Ve du GBF)
+- n: 2
+  de: BNC1.shield
+  vers: TOP-L1-3
+  couleur: noir
+  role: blindage BNC 1 -> masse
+- n: 3
+  de: BNC2.core
+  vers: T1i48
+  couleur: orange
+  role: âme du BNC 2 (Vs vers voie 2)
+- n: 4
+  de: BNC2.shield
+  vers: TOP-L1-4
+  couleur: noir
+  role: blindage BNC 2 -> masse
+- n: 5
+  de: T1f49
+  vers: N1-1u-49
+  couleur: rouge
+  role: 'entrée B (broche 2) à +5 V : Y = NON A'
+- n: 6
+  de: T1b50
+  vers: N2-1u-50
+  couleur: rouge
+  role: broche 14 (VCC) vers +5 V
+- n: 7
+  de: T1f44
+  vers: TOP-L1-5
+  couleur: noir
+  role: broche 7 (GND) vers 0 V
+- n: 8
+  de: VC.main
+  vers: N2-1u-62
+  couleur: rouge
+  role: '+5 V : douille VC vers rail N2 col. 1'
+- n: 9
+  de: N2-1u-61
+  vers: N1-1u-61
+  couleur: rouge
+  role: lien du rail +5 V N2 vers N1
+- n: 10
+  de: MASSE.main
+  vers: TOP-L1-1
+  couleur: turquoise
+  role: '0 V : douille MASSE vers bus haut'
+cables:
+- id: A
+  nom: BNC–BNC
+  de: gbf.out1
+  vers: BNC1
+  role: GBF -> plaque (signal Ve)
+- id: B
+  nom: BNC–BNC depuis le T
+  de: gbf.out1
+  vers: scope.ch1
+  role: dérivation du GBF -> voie 1 (affiche Ve)
+  via: T
+- id: C
+  nom: BNC–BNC
+  de: scope.ch2
+  vers: BNC2
+  role: voie 2 de l'oscillo <- plaque (Vs)
+- id: D
+  nom: câble banane
+  de: psu.ch1_plus
+  vers: VC
+  role: +5 V (voie 1 +) -> douille VC
+- id: E
+  nom: câble banane
+  de: psu.ch1_moins
+  vers: MASSE
+  role: 0 V (voie 1 −) -> douille MASSE
+tee:
+  sur: gbf.out1
+  statut: a_confirmer
+  preuve: adaptateur chromé sur la sortie 1 du GBF ; 2 BNC seulement sur la plaque pour 3 liaisons
+noeuds:
+  A:
+  - BNC1.core
+  - T1g50
+  - U1.1
+  Y:
+  - U1.3
+  - BNC2.core
+  - T1i48
+  VCC:
+  - U1.14
+  - U1.2
+  - VC.main
+  - N1-1u-49
+  - N2-1u-50
+  GND:
+  - U1.7
+  - T1f44
+  - TOP-L1-5
+  - BNC1.shield
+  - BNC2.shield
+  - TOP-L1-3
+  - TOP-L1-4
+  - MASSE.main
+  - TOP-L1-1
+etapes_montage:
+- 'Depuis A : retire R, LED, fil 7 (cathode) et le fil A (+5 V sur l''entrée 1).'
+- 'Fil 1 : BNC1 (triangle) sur l''entrée A = broche 1 (T1g50). Fil 5 : B reste à +5 V.'
+- 'GBF : Ramp, symétrie 50 %, 1 kHz, 5 Vpp, offset +2,5 V → le signal va de 0 à 5 V.'
+- 'Voie 1 = triangle (T), voie 2 = Y ; curseurs Y au moment où Y bascule : VT+ (montant) et VT− (descendant).'
+precedent: montages/tp3/A_nand.yaml
+instruments:
+  psu:
+    photo: psu_ports
+    reglages: Voie 1 = 5,00 V (6 V max) · limite 0,1 A · ON après câblage
+    etapes:
+    - n: 1
+      cible: ch1_plus
+      texte: 'Voie 1 : régler 5,00 V, limite de courant 0,1 A'
+    - n: 2
+      cible: btn_on_1
+      texte: 'ON : lire 5,00 V à l''écran'
+  gbf:
+    photo: gbf_ports
+    reglages: Ramp 50 % · 5 Vpp · offset 2,5 V · 1 kHz · High Z
+    etapes:
+    - n: 1
+      cible: btn_waveform
+      texte: Waveform puis la forme voulue
+    - n: 2
+      cible: btn_parameter
+      texte: 'Parameter : Frequency / Amplitude / Offset'
+    - n: 3
+      cible:
+      - keypad_1
+      - keypad_0
+      - keypad_dot
+      texte: 'Pavé : 1 kHz, 5 Vpp, offset 2.5 V ; Parameter → Symmetry 50 %'
+    - n: 4
+      cible: btn_ch1_setup
+      texte: 'Setup (Channel 1) : charge High Z — chemin exact à vérifier sur l''appareil'
+    - n: 5
+      cible: btn_ch1_onoff
+      texte: 'On/Off (Channel 1) : ON'
+  scope:
+    photo: scope_front
+    reglages: 'Voie 1 : 1 V/div (offset −2,5 V) · voie 2 : 1 V/div · 200 µs/div · curseurs Y'
+    etapes:
+    - n: 1
+      cible: btn_default_setup
+      texte: Default Setup
+    - n: 2
+      cible:
+      - btn_ch1
+      - btn_ch2
+      texte: Voies 1 et 2 allumées, couplage DC, sonde 1:1
+    - n: 3
+      cible: knob_horiz
+      texte: Base de temps selon le montage
+    - n: 4
+      cible: btn_trig_menu
+      texte: 'Trigger : source voie 1, front montant'
+    - n: 5
+      cible: btn_meas
+      texte: 'Meas : Cr-cr voies 1 et 2, fréquence ; curseurs si besoin'
+pannes:
+- 'Y toujours à 0 : B n''est pas à +5 V (fil 5) ou triangle sans offset (descend sous 0 V).'
+- 'Pas de basculement visible : amplitude réglée en Vrms au lieu de Vpp, ou charge 50 Ω (signal divisé par 2).'

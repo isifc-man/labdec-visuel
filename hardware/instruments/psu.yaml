@@ -1,0 +1,33 @@
+# Alimentation Keysight EDU36311A — coordonnées en pixels sur assets/photos/psu_ports.jpg (2048 x 1536).
+id: psu
+modele: "Keysight EDU36311A (triple sortie programmable)"
+etiquette_lue: "6 V/5 A, 30 V/1 A, 30 V/1 A"
+voies:
+  1: {couleur: jaune, plage: "6 V / 5 A (à confirmer à l'écran) — sert au +5 V du TP3 et au V1 continu du soustracteur"}
+  2: {couleur: vert, plage: "30 V / 1 A — +15 V du TP2"}
+  3: {couleur: bleu, plage: "30 V / 1 A — −15 V du TP2 (sa borne + au 0 V)"}
+regle_pm15v: "0 V commun = voie 2 « − » reliée à voie 3 « + ». +15 V = voie 2 « + ». −15 V = voie 3 « − ». (Sujet TP2 annexe 1 : « tension négative en reliant la borne + d'une source à la masse »)."
+photos:
+  psu_ports:
+    file: psu_ports.jpg
+    w: 2048
+    h: 1536
+    zones:
+      ch1_plus: [520, 1210]
+      ch1_moins: [725, 1215]
+      ch2_plus: [897, 1205]
+      ch2_moins: [1075, 1215]
+      ch3_plus: [1255, 1205]
+      ch3_moins: [1420, 1215]
+      terre_chassis: [105, 1175]
+      btn_on_1: [738, 960]
+      btn_on_2: [1092, 968]
+      btn_on_3: [1442, 975]
+      voltage_knob: [880, 140]
+      current_knob: [1465, 150]
+      keypad_1: [1230, 630]
+      keypad_5: [1393, 512]
+      keypad_0: [1220, 745]
+      enter: [1487, 862]
+      all_onoff: [1095, 858]
+      meter_view: [725, 365]

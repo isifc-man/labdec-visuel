@@ -1,0 +1,44 @@
+# GBF Keysight EDU33211A — coordonnées en pixels sur la photo indiquée.
+id: gbf
+modele: "Keysight EDU33211A"
+sortie_50ohm: {nom: "Output 1", impedance: "50 Ω", prise: BNC}
+adaptateur_en_T:
+  statut: a_confirmer
+  preuve: "pièce chromée à anneau noir visible sur la sortie 1 (photo gbf_ports.jpg)"
+photos:
+  gbf_ports:
+    file: gbf_ports.jpg
+    w: 2048
+    h: 1536
+    zones:
+      out1: [1430, 985]
+      cal: [375, 990]
+      ext_trig: [630, 990]
+      sync_out: [885, 985]
+      btn_waveform: [880, 112]
+      btn_parameter: [1042, 102]
+      btn_units: [1212, 92]
+      btn_sweep: [1043, 203]
+      softkey_1: [692, 292]
+      softkey_2: [692, 383]
+      softkey_3: [692, 472]
+      softkey_4: [692, 562]
+      softkey_5: [692, 652]
+      softkey_6: [692, 742]
+      keypad_1: [862, 538]
+      keypad_2: [978, 535]
+      keypad_3: [1097, 531]
+      keypad_4: [862, 447]
+      keypad_5: [978, 443]
+      keypad_6: [1097, 438]
+      keypad_7: [862, 357]
+      keypad_8: [978, 352]
+      keypad_9: [1097, 347]
+      keypad_0: [862, 628]
+      keypad_dot: [978, 628]
+      btn_ch1_setup: [1295, 803]
+      btn_ch1_onoff: [1418, 803]
+      ecran_menu: [500, 450]
+notes:
+  - "Écran photographié : sortie OFF, forme sinus. Le bouton On/Off du canal 1 est jaune."
+  - "Charge High Z : à régler pour que la tension affichée soit la vraie (cf. sujet TP1, partie A et C)."

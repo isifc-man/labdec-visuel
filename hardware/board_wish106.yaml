@@ -1,0 +1,51 @@
+# Plaque ISIFC = Wish Board 106 (WISHER WB-106+J) modifiée par l'ISIFC.
+# Source de vérité de la plaque. Chaque fait porte un statut : verifie | a_confirmer.
+id: wish_board_106
+sources:
+  - assets/photos/board_front.jpg
+  - assets/photos/board_back.jpg
+  - "Sujet TP1, annexe 3 : figure 6 (schéma des connexions) et mention des « W »"
+
+geometrie:
+  rangees: 63                 # numérotées le long des bandes
+  rangee_1_en_bas: a_confirmer
+  bandes_ordre: [N1, T1L, T1R, N2, T2L, T2R, N3, T3L, T3R, N4]   # gauche -> droite, photo de face
+  blocs:                      # un bloc = 2 bandes larges séparées par une fente (la fente coupe le contact)
+    T1: {gauche: T1L, droite: T1R}
+    T2: {gauche: T2L, droite: T2R}
+    T3: {gauche: T3L, droite: T3R}
+  lettres: {gauche: "f-j", droite: "a-e"}     # lu par l'utilisateur sur les photos (2026-11-06) ; dans chaque bloc la fente est entre j (gauche) et a (droite)
+  trous_par_rangee_et_cote: 5                 # les 5 trous d'une rangée du même côté sont reliés (verifie, fig. 6)
+
+rails:
+  bandes: [N1, N2, N3, N4]    # 4 bandes étroites verticales, 2 colonnes chacune
+  coupure_au_milieu: {rangee: 32, repere: "W", statut: verifie, source: "Sujet TP1 annexe 3"}
+  adressage: "N<bande>-<colonne 1|2><u|d>-<rangée>   u = moitié haute (33..63), d = moitié basse (1..32)"
+
+bus_haut:
+  lignes: 2
+  moities: [L, R]
+  positions: 25
+  statut: a_confirmer          # le schéma fig. 6 montre 2 traits séparés en haut
+  adressage: "TOP-<L|R><ligne 1|2>-<position 1..25>"
+  usage_retenu: "TOP-L1 = masse (0 V), comme sur la photo : les fils noirs des BNC y arrivent"
+
+# Les 7 connecteurs du bord haut, de gauche à droite sur la photo de face.
+# x_ph = position horizontale sur board_front.jpg (1200 px de large) ; oeillets = trous de la plaque où arrive le fil.
+connecteurs:
+  - {id: BANANE_ROUGE, type: banane, couleur: rouge,     x_ph: 235, oeillets: {main: 255}}
+  - {id: BANANE_NOIRE, type: banane, couleur: noir,      x_ph: 320, oeillets: {main: 300}}
+  - {id: BNC1,         type: bnc,    couleur: argent,    x_ph: 450, oeillets: {core: 425, shield: 470}}
+  - {id: BNC2,         type: bnc,    couleur: argent,    x_ph: 555, oeillets: {core: 520, shield: 570}}
+  - {id: VB,           type: banane, couleur: bleu,      x_ph: 665, oeillets: {main: 675}}
+  - {id: VC,           type: banane, couleur: rouge,     x_ph: 780, oeillets: {main: 780}}
+  - {id: MASSE,        type: banane, couleur: turquoise, x_ph: 900, oeillets: {main: 895}}
+
+bnc:
+  conducteurs: [core, shield]   # âme (+) et blindage (-) : un câble BNC = DEUX fils à câbler sur la plaque
+  cote_ame: gauche              # statut a_confirmer pour BNC1 ; vu sur BNC2 (fil rouge de l'oeillet de gauche)
+  blindages_communs: true       # Sujet TP1 annexe 3 : « pour les fiches BNC, les masses sont communes »
+  regle: "Chaque BNC utilisé doit avoir son âme ET son blindage câblés, sinon le signal n'a pas de retour."
+
+modifications_isimfc: "Borne Va d'origine retirée ; ajout d'une banane rouge, d'une banane noire et de 2 BNC (7 connecteurs au total)."
+conventions_fils: {noir: masse, rouge: tension positive, "bleu ou vert": tension négative}

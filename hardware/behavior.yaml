@@ -1,0 +1,77 @@
+# Paramètres de COMPORTEMENT pour l'app temps réel (simulation). Chaque valeur porte un statut :
+#   verifie    = lu sur une photo, un sujet ou une fiche constructeur (source indiquée)
+#   a_verifier = hypothèse raisonnable du projet, à confirmer
+#   a_remplir  = inconnu : valeur null, à lire dans la fiche ou à mesurer sur ton banc
+# Rien ici n'est inventé : si la source manque, la valeur est null.
+
+global:
+  gmin_s: {valeur: 0.000000001, statut: a_verifier, note: "1 GΩ de fuite de chaque nœud vers la terre : évite les nœuds flottants indéterminés"}
+
+cables_bnc:
+  capacite_pf_par_m: {valeur: 100, statut: a_verifier, note: "ordre de grandeur d'un câble coaxial ; à mesurer au capacimètre si possible"}
+  longueur_m: {valeur: 1, statut: a_verifier}
+
+resistances:
+  serie: {valeur: E12, statut: verifie, source: "Sujet TP1 : « les résistances disponibles en salle de TP sont celles de la série E12 »"}
+  valeurs_decade: {valeur: [10, 12, 15, 18, 22, 27, 33, 39, 47, 56, 68, 82], statut: verifie, source: "série E12 standard"}
+  tolerance: {valeur: 0.05, statut: a_verifier, note: "±5 % supposé (4e anneau or) ; à lire sur les résistances du labo"}
+
+led_rouge:
+  vf_v: {valeur: 1.9, statut: a_verifier, note: "à 8 mA ; la couleur de la LED du labo n'est pas confirmée"}
+  i_ref_a: {valeur: 0.008, statut: a_verifier}
+  nvt_v: {valeur: 0.1, statut: a_verifier, note: "pente exponentielle du modèle : paramètre de calage"}
+
+TL081:
+  gbw_hz: {valeur: 4000000, statut: verifie, source: "fiche TI TL081 : 4 MHz typique (recherche web du 2026-11-06)"}
+  slew_v_par_us: {valeur: 13, statut: verifie, source: "fiche TI TL081 : 13 V/µs typique"}
+  vsat_v: {valeur: 12.5, statut: a_verifier, source: "fiche TI : ±12 V min, ±13,5 V typ à RL = 10 kΩ ; ta photo C ≈ ±12 V"}
+  gain_boucle_ouverte_db: {valeur: null, statut: a_remplir}
+  tension_offset_entree_mv: {valeur: null, statut: a_remplir}
+  courant_polarisation_pa: {valeur: null, statut: a_remplir}
+  resistance_sortie_ohm: {valeur: null, statut: a_remplir}
+  alimentation_min_v: {valeur: null, statut: a_remplir, note: "en dessous la puce ne fonctionne plus : règle « non alimentée »"}
+
+logique_ttl:
+  vil_v: {valeur: 0.8, statut: verifie, source: "guide banc TP3 : « V_IL = 0,8 V et V_IH = 2 V »"}
+  vih_v: {valeur: 2.0, statut: verifie, source: "guide banc TP3"}
+  voh_v_min: {valeur: 2.7, statut: verifie, source: "guide banc TP3 : « au moins 2,7 V »"}
+  vol_v_max: {valeur: 0.4, statut: verifie, source: "guide banc TP3 : « au plus 0,4 V »"}
+  entree_flottante: {valeur: "niveau haut", statut: verifie, source: "sujet TP3 : « les broches sont à un niveau haut par défaut »"}
+74LS74:
+  tplh_ns: {typ: 13, max: 25, statut: verifie, source: "guide banc TP3 (page B suite)"}
+  tphl_ns: {typ: 25, max: 40, statut: verifie, source: "guide banc TP3 (page B suite)"}
+74LS00:
+  tplh_ns: {typ: null, max: null, statut: a_remplir}
+  tphl_ns: {typ: null, max: null, statut: a_remplir}
+
+gbf_EDU33211A:
+  resistance_sortie_ohm: {valeur: 50, statut: verifie, source: "Sujet TP1 annexe 1 : impédance de sortie 50 Ω"}
+  frequence_max_hz: {valeur: 20000000, statut: verifie, source: "photo de l'appareil : « 20 MHz »"}
+  formes: {valeur: [Sine, Square, Ramp, Pulse, Arb], statut: verifie, source: "touches de l'écran, photo port GBF"}
+  charge: {valeur: [HighZ, "50"], statut: verifie, source: "sujet TP1 : réglage « high Z »"}
+  sync_ttl_v: {valeur: 5, statut: verifie, source: "Sujet TP1 annexe 1 : sortie Sync = créneau 5 V"}
+  amplitude_min_max_vpp: {valeur: null, statut: a_remplir, note: "à lire dans la fiche de l'EDU33211A"}
+  temps_de_montee_ns: {valeur: null, statut: a_remplir, note: "utilisé pour les fronts des créneaux ; 10 ns supposé dans le moteur actuel"}
+
+oscilloscope_DSOX1202A:
+  bande_passante_hz: {valeur: 70000000, statut: verifie, source: "photo : « 70 MHz »"}
+  echantillonnage_gsa_s: {valeur: 2, statut: verifie, source: "photo : « 2 GSa/s »"}
+  entree: {r_ohm: 1000000, c_pf: 16, vrms_max: 150, statut: verifie, source: "photo des entrées : « 1 MΩ ≈ 16 pF, 150 V RMS »"}
+  divisions: {verticales: 8, horizontales: 10, statut: verifie, source: "Sujet TP1 annexe 2"}
+  couplages: {valeur: [DC], statut: a_verifier, note: "AC et GND existent sur l'appareil : à confirmer dans le menu de voie"}
+  sonde: {valeur: "1.00:1", statut: verifie, source: "photos d'écran"}
+  mesures_vues: {valeur: ["Moy - PE", "Fréq", "Max", "Cr-cr", "Phase"], statut: verifie, source: "tes photos d'écran"}
+  modes_declenchement: {valeur: [Auto], statut: a_verifier, note: "Normal et Single : touche Single présente ; à confirmer"}
+  resolution_bits: {valeur: null, statut: a_remplir}
+  sensibilites_v_par_div: {valeur: null, statut: a_remplir, note: "liste 1-2-5 min..max à lire dans la fiche"}
+  bases_de_temps: {valeur: null, statut: a_remplir}
+  algorithme_auto_scale: {valeur: null, statut: a_remplir, note: "comportement observé : voie 1 en haut, voie 2 en bas (offsets ≈ ±2 carreaux)"}
+
+alimentation_EDU36311A:
+  voies: {valeur: {1: {vmax: 6, imax: 5}, 2: {vmax: 30, imax: 1}, 3: {vmax: 30, imax: 1}}, statut: a_verifier, source: "étiquette « 6 V/5 A, 30 V/1 A, 30 V/1 A » ; l'ordre voie 1/2/3 est supposé"}
+  sorties_flottantes: {valeur: true, statut: verifie, source: "Sujet TP2 annexe 1 : sorties flottantes"}
+  limite_courant_cc: {valeur: true, statut: verifie, source: "Sujet TP2 annexe 1 : passage en source de courant (LED CC) à la limite"}
+  precision_affichage_v: {valeur: null, statut: a_remplir}
+
+multimetre:
+  modele: {valeur: null, statut: a_remplir, note: "non photographié ; nécessaire pour TP1 B (oscillo contre multimètre) : bande passante du mode AC, résistance d'entrée"}

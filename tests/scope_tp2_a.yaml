@@ -1,0 +1,13 @@
+# Test de fidélité du rendu : reproduire la photo scope_tp2_a.jpg (TP2, deux sinus, menu Auto Scale ouvert).
+# Valeurs LUES sur la photo ; le montage exact n'est pas précisé -> a_confirmer.
+titre: "Photo A — deux sinus (voie 2 en 100 mV/div)"
+photo: {file: scope_tp2_a.jpg, crop: [230, 165, 830, 430]}
+vue: {rotateY: 9, rotate: 0}
+tdiv: 0.0002
+trig: {src: 1, level: "-1.04V"}
+panel: {mode: autoscale, titre: "Rég. auto éch", boutons: ["Annuler\nEchelle auto", "Débog rapide", "Voies\nTtes", "Mode acq\nNormal"]}
+ch1: {scale: 2.0, offset: -4.024, wave: {kind: sine, vpp: 5.2, f: 1062, phase: 0}}
+ch2: {scale: 0.1, offset: 0.193, wave: {kind: sine, vpp: 0.213, f: 1062, phase: -18}}
+bottom:
+  - {l: "-4.02400V", v: "DC      1.00:1", c: ch1}
+  - {l: "+193.000mV", v: "DC      1.00:1", c: ch2}

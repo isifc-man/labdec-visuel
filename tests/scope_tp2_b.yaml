@@ -1,0 +1,15 @@
+# Test de fidélité : photo scope_tp2_b.jpg (triangle dissymétrique à « pic » + carré avec ondulations, curseurs et mesures).
+titre: "Photo B — triangle à pic + carré, mesures Cr-cr et phase"
+photo: {file: scope_tp2_b.jpg, crop: [165, 250, 740, 420]}
+vue: {rotateY: 3, rotate: 0}
+tdiv: 0.0002
+trig: {src: 1, level: "-3.04V"}
+panel: {mode: autoscale, titre: "Rég. auto éch", boutons: ["Annuler\nEchelle auto", "Débog rapide", "Voies\nAffichées", "Mode acq\nNormal"]}
+ch1: {scale: 2.0, offset: -3.6, wave: {kind: tri, vpp: 6.0, f: 1020, phase: 47, sym: 0.43, notch: 0.16}}
+ch2: {scale: 2.0, offset: 4.1,  wave: {kind: square, vpp: 4.8, f: 1020, phase: 33, duty: 0.5, edge: 0.012, ripple: 0.12, ripple_f: 70000}}
+cursors: {x: [-0.65, -0.1], y: [1.8, -2.07]}
+bottom:
+  - {l: "Cr-cr(1):", v: "5.9V", c: ch1}
+  - {l: "Cr-cr(2):", v: "5.4V", c: ch2}
+  - {l: "Phase(2→2):", v: "0.0°"}
+  - {l: "Phase(2→1):", v: "67.5°"}

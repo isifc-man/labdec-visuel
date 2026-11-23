@@ -1,0 +1,227 @@
+# GÉNÉRÉ par un script de session puis relu : YAML = source de vérité. Placement = proposition (sens a-e/f-j, rangée 1 en bas, bus haut : à confirmer sur la plaque).
+id: tp2-B1-inverseur
+tp: 2
+titre: B1. Inverseur (R1 = 1 kΩ, R2 = 20 kΩ, Av = −20)
+objectif: Ve = 0,4 Vpp, 1 kHz -> Vs = 8 Vpp en opposition de phase (non saturé).
+plaque: wish_board_106
+puces:
+- ref: U1
+  modele: TL081
+  bloc: T1
+  rangee_broche1: 50
+  encoche: haut
+composants:
+  R1:
+    type: resistor
+    ohm: 1000
+    etiquette: 1 kΩ
+    a: T1f53
+    b: T1h49
+  R2:
+    type: resistor
+    ohm: 20000
+    etiquette: 20 kΩ (ou 2×10 kΩ en série)
+    a: T1e53
+    b: T1e48
+fils:
+- n: 1
+  de: BNC1.core
+  vers: T1g53
+  couleur: rouge
+  role: 'Ve : âme du BNC 1 vers R1'
+- n: 2
+  de: BNC1.shield
+  vers: TOP-L1-3
+  couleur: noir
+  role: blindage BNC 1 -> masse
+- n: 3
+  de: BNC2.core
+  vers: T1c48
+  couleur: orange
+  role: âme du BNC 2 (Vs vers voie 2)
+- n: 4
+  de: BNC2.shield
+  vers: TOP-L1-4
+  couleur: noir
+  role: blindage BNC 2 -> masse
+- n: 5
+  de: T1f49
+  vers: T1d53
+  couleur: jaune
+  role: broche 2 (IN−) vers le haut de R2 (R2 est de l'autre côté de la fente)
+- n: 6
+  de: T1g48
+  vers: TOP-L1-6
+  couleur: noir
+  role: broche 3 (IN+) à la masse 0 V
+- n: 7
+  de: T1b49
+  vers: N2-1u-49
+  couleur: rouge
+  role: broche 7 (V+) vers le rail +15 V
+- n: 8
+  de: T1i47
+  vers: N1-1u-47
+  couleur: bleu
+  role: broche 4 (V−) vers le rail −15 V
+- n: 9
+  de: VC.main
+  vers: N2-1u-62
+  couleur: rouge
+  role: '+15 V : douille VC vers rail N2 colonne 1 (rail +15 V)'
+- n: 10
+  de: VB.main
+  vers: N1-1u-62
+  couleur: bleu
+  role: '−15 V : douille VB vers rail N1 colonne 1 (rail −15 V)'
+- n: 11
+  de: MASSE.main
+  vers: TOP-L1-1
+  couleur: turquoise
+  role: '0 V : douille MASSE vers le bus haut gauche (masse commune)'
+cables:
+- id: A
+  nom: BNC–BNC
+  de: gbf.out1
+  vers: BNC1
+  role: GBF -> plaque (signal Ve)
+- id: B
+  nom: BNC–BNC depuis le T
+  de: gbf.out1
+  vers: scope.ch1
+  role: dérivation du GBF -> voie 1 (affiche Ve)
+  via: T
+- id: C
+  nom: BNC–BNC
+  de: scope.ch2
+  vers: BNC2
+  role: voie 2 de l'oscillo <- plaque (Vs)
+- id: D
+  nom: câble banane
+  de: psu.ch2_plus
+  vers: VC
+  role: +15 V (voie 2 +) -> douille VC (rouge)
+- id: E
+  nom: câble banane
+  de: psu.ch3_moins
+  vers: VB
+  role: −15 V (voie 3 −) -> douille VB (bleue)
+- id: F
+  nom: câble banane
+  de: psu.ch2_moins
+  vers: MASSE
+  role: 0 V (voie 2 −) -> douille MASSE (⏚)
+- id: G
+  nom: strap banane
+  type: strap
+  de: psu.ch2_moins
+  vers: psu.ch3_plus
+  role: 'relie voie 2 − à voie 3 + : c''est ce point commun qui devient le 0 V'
+tee:
+  sur: gbf.out1
+  statut: a_confirmer
+  preuve: adaptateur chromé sur la sortie 1 du GBF ; 2 BNC seulement sur la plaque pour 3 liaisons
+noeuds:
+  VE:
+  - BNC1.core
+  - T1g53
+  - R1.a
+  INV:
+  - R1.b
+  - R2.a
+  - U1.2
+  - T1f49
+  - T1d53
+  VS:
+  - U1.6
+  - R2.b
+  - BNC2.core
+  - T1c48
+  GND:
+  - BNC1.shield
+  - BNC2.shield
+  - TOP-L1-3
+  - TOP-L1-4
+  - U1.3
+  - T1g48
+  - TOP-L1-6
+  - MASSE.main
+  - TOP-L1-1
+  VPLUS:
+  - U1.7
+  - VC.main
+  - N2-1u-62
+  VMOINS:
+  - U1.4
+  - VB.main
+  - N1-1u-62
+etapes_montage:
+- 'Pars du montage A : retire le fil 5 (boucle) et le fil 1 ; garde alim et puce.'
+- 'R1 (1 kΩ) : T1f53 → T1h49 ; R2 (20 kΩ) : T1e53 → T1e48.'
+- 'Fil 5 : T1f49 → T1d53 (broche 2 vers R2). Fil 6 : broche 3 à la masse. Fil 1 : Ve vers R1 (T1g53).'
+- 'GBF 0,4 Vpp : avec Av = −20, Vs = 8 Vpp ; à 5 Vpp la sortie saturerait à ±13 V.'
+precedent: montages/tp2/A_suiveur.yaml
+instruments:
+  psu:
+    photo: psu_ports
+    reglages: Voie 2 = +15,0 V · voie 3 = 15,0 V (sa borne + au 0 V donne −15 V) · limite de courant 0,05 A · sorties ON seulement APRÈS câblage
+    etapes:
+    - n: 1
+      cible: ch2_plus
+      texte: 'Voie 2 : régler 15 V, limite 0,05 A'
+    - n: 2
+      cible: ch3_plus
+      texte: 'Voie 3 : 15 V, limite 0,05 A ; sa borne + est reliée à la borne − de la voie 2 (strap G)'
+    - n: 3
+      cible: ch3_moins
+      texte: −15 V = borne − de la voie 3, vers VB
+    - n: 4
+      cible: btn_on_2
+      texte: Allumer voie 2 puis voie 3 (ON). Vérifier à l'écran +15,00 V et 15,00 V
+  gbf:
+    photo: gbf_ports
+    reglages: Sinus · 0,4 Vpp · 1 kHz · High Z
+    etapes:
+    - n: 1
+      cible: btn_waveform
+      texte: Waveform puis la forme voulue
+    - n: 2
+      cible: btn_parameter
+      texte: 'Parameter : Frequency / Amplitude / Offset'
+    - n: 3
+      cible:
+      - keypad_1
+      - keypad_0
+      - keypad_dot
+      texte: 'Pavé : 1 kHz, 400 mVpp (0.4 V), offset 0'
+    - n: 4
+      cible: btn_ch1_setup
+      texte: 'Setup (Channel 1) : charge High Z — chemin exact à vérifier sur l''appareil'
+    - n: 5
+      cible: btn_ch1_onoff
+      texte: 'On/Off (Channel 1) : ON'
+  scope:
+    photo: scope_front
+    reglages: 'Voie 1 : 200 mV/div · voie 2 : 5 V/div · 200 µs/div'
+    etapes:
+    - n: 1
+      cible: btn_default_setup
+      texte: Default Setup
+    - n: 2
+      cible:
+      - btn_ch1
+      - btn_ch2
+      texte: Voies 1 et 2 allumées, couplage DC, sonde 1:1
+    - n: 3
+      cible: knob_horiz
+      texte: Base de temps selon le montage
+    - n: 4
+      cible: btn_trig_menu
+      texte: 'Trigger : source voie 1, front montant'
+    - n: 5
+      cible: btn_meas
+      texte: 'Meas : Cr-cr voies 1 et 2, fréquence ; curseurs si besoin'
+pannes:
+- 'Vs écrêtée plate à ±13 V : Ve trop grand (maximum ≈ 0,6 Vpp pour Av = −20).'
+- 'Vs = Ve : R2 absente ou en court-circuit.'
+- 'Vs ≈ 0 : broche 3 pas à la masse (fil 6).'

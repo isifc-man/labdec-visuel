@@ -1,0 +1,60 @@
+# TP1 — partie D : LED. Carré 0–5 V à 1 Hz (offset 2,5 V, 5 Vpp) -> 330 Ω -> LED -> masse.
+id: tp1-D1-led
+tp: 1
+titre: "LED avec résistance de protection"
+objectif: "Faire clignoter une LED à 1 Hz, observer la tension aux bornes de la LED, puis augmenter la fréquence."
+plaque: wish_board_106
+circuit: tp1-D-led
+
+composants:
+  R:   {type: resistor, ohm: 330, etiquette: "330 Ω (orange-orange-marron)", a: T1a62, b: T1a57}
+  LED: {type: led, etiquette: "LED rouge (patte longue = anode)", a: T1b57, k: T1b52}
+
+fils:
+  - {n: 1, de: BNC1.core,   vers: T1b62,    couleur: rouge,  role: "âme du BNC 1 (sortie du GBF) vers la résistance"}
+  - {n: 2, de: BNC1.shield, vers: TOP-L1-3, couleur: noir,   role: "blindage du BNC 1 vers la masse"}
+  - {n: 3, de: BNC2.core,   vers: T1c57,    couleur: orange, role: "âme du BNC 2 (voie 2) vers l'anode de la LED"}
+  - {n: 4, de: BNC2.shield, vers: TOP-L1-4, couleur: noir,   role: "blindage du BNC 2 vers la masse"}
+  - {n: 5, de: T1a52,       vers: TOP-L1-5, couleur: noir,   role: "cathode de la LED (patte courte, méplat) vers la masse"}
+
+cables:
+  - {id: A, nom: "BNC–BNC", de: gbf.out1, vers: BNC1, role: "GBF -> plaque"}
+  - {id: B, nom: "BNC–BNC depuis le T", de: gbf.out1, vers: scope.ch1, via: T, role: "voie 1 : tension E côté GBF"}
+  - {id: C, nom: "BNC–BNC", de: scope.ch2, vers: BNC2, role: "voie 2 : tension aux bornes de la LED"}
+tee: {sur: gbf.out1, statut: a_confirmer, preuve: "adaptateur chromé visible sur la sortie 1 du GBF"}
+
+noeuds:
+  E:   [BNC1.core, T1b62, R.a]
+  A:   [R.b, LED.a, BNC2.core, T1c57]
+  GND: [BNC1.shield, BNC2.shield, LED.k, T1a52, TOP-L1-3, TOP-L1-4, TOP-L1-5]
+
+etapes_montage:
+  - "Pose R (330 Ω) : T1a62 et T1a57. Pose la LED : patte LONGUE (anode, +) en T1b57, patte COURTE (cathode, méplat) en T1b52."
+  - "Fils 1 et 2 (BNC 1), puis fils 3 et 4 (BNC 2), puis fil 5 (cathode → masse)."
+  - "Câbles A, B, C. GBF : carré, 5 Vpp, offset 2,5 V (donc 0 → 5 V), 1 Hz, High Z, ON."
+  - "Augmente ensuite la fréquence (10 Hz, 100 Hz, 1 kHz) : au-delà de quelques dizaines de Hz la LED paraît allumée en continu."
+
+instruments:
+  gbf:
+    photo: gbf_ports
+    reglages: "Carré · 5 Vpp · offset 2,5 V · 1 Hz · charge High Z · sortie ON"
+    etapes:
+      - {n: 1, cible: btn_waveform,  texte: "Waveform, puis touche en face de « Square »"}
+      - {n: 2, cible: softkey_2,     texte: "Touche à droite de l'écran en face de « Square »"}
+      - {n: 3, cible: btn_parameter, texte: "Parameter, puis Frequency, Amplitude, Offset"}
+      - {n: 4, cible: [keypad_1, keypad_0, keypad_dot], texte: "Pavé : 1 puis Hz ; 5 puis Vpp ; 2.5 puis V (offset)"}
+      - {n: 5, cible: btn_ch1_setup, texte: "Setup (Channel 1) : charge « High Z » — chemin exact à vérifier"}
+      - {n: 6, cible: btn_ch1_onoff, texte: "On/Off (Channel 1) : ON. Sans l'offset de +2,5 V le signal descend à −2,5 V (LED à l'envers)."}
+  scope:
+    photo: scope_front
+    reglages: "Voie 1 = E (≈ 4,6 V) · voie 2 = LED (≈ 1,9 V) · 200 ms/div à 1 Hz · déclenchement voie 1"
+    etapes:
+      - {n: 1, cible: btn_default_setup, texte: "Default Setup"}
+      - {n: 2, cible: [btn_ch1, btn_ch2], texte: "Voies 1 et 2 allumées ; couplage DC ; sonde 1:1"}
+      - {n: 3, cible: knob_horiz,    texte: "Base de temps : 200 ms/div à 1 Hz (2 périodes à l'écran)"}
+      - {n: 4, cible: btn_meas,      texte: "Meas : Moy - PE(1), Max(1), Max(2)"}
+
+pannes:
+  - "La LED ne s'allume jamais : elle est à l'envers (patte longue côté résistance) ; retourne-la, elle ne grille pas."
+  - "Voie 2 écrêtée à ≈ 1,9 V : c'est normal, c'est la tension de seuil de la LED."
+  - "Rien sur la voie 1 : sortie du GBF OFF, ou offset resté à 0 (le signal passe sous 0 V)."

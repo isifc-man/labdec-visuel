@@ -1,0 +1,13 @@
+# Test de fidélité : photo scope_tp2_c.jpg — PHOTO PENCHÉE (~6,5° dans le sens horaire) :
+# deux carrés, voie 1 en 10 V/div (saturation de la sortie, ≈ ±12 V), voie 2 en 2 V/div.
+titre: "Photo C — deux carrés (voie 1 saturée, 10 V/div) — photo penchée"
+photo: {file: scope_tp2_c.jpg, crop: [115, 640, 640, 460]}
+vue: {rotateY: 0, rotate: 6.5}
+tdiv: 0.00024
+trig: {src: 1, level: "-84.0V"}
+panel: {mode: autoscale, titre: "Rég. auto éch", boutons: ["Annuler\nEchelle auto", "Débog rapide", "Voies\nTtes", "Mode acq\nNormal"]}
+ch1: {scale: 10.0, offset: -19.684, wave: {kind: square, vpp: 24.0, f: 1000, phase: 0, duty: 0.5, edge: 0.012}}
+ch2: {scale: 2.0,  offset: 3.835,   wave: {kind: square, vpp: 4.7,  f: 1000, phase: -5, duty: 0.5, edge: 0.012}}
+bottom:
+  - {l: "-19.6840V", v: "DC      1.00:1", c: ch1}
+  - {l: "+3.83500V", v: "DC      1.00:1", c: ch2}

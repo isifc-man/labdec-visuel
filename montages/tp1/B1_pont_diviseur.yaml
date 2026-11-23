@@ -1,0 +1,79 @@
+# TP1 — partie B : pont diviseur de tension par 10 (montage « à vide », figure 1 du sujet).
+# Valeurs de résistances = celles de TON compte rendu : R1 = 8,2 kΩ + 820 Ω en série (≈ 9 kΩ), R2 = 1 kΩ.
+# Le PLACEMENT sur la plaque (rangées 62 -> 47 du côté f-j du bloc T1) est une proposition de ce projet.
+id: tp1-B1-pont-diviseur
+tp: 1
+titre: "Pont diviseur de tension par 10"
+objectif: "Obtenir Us = 0,2 Vpp à partir de Ue = 2 Vpp (sinus 1 kHz) et observer Ue (voie 1) et Us (voie 2)."
+plaque: wish_board_106
+circuit: tp1-B-pont-diviseur
+
+composants:
+  R1a: {type: resistor, ohm: 8200, etiquette: "8,2 kΩ", a: T1a62, b: T1a57}
+  R1b: {type: resistor, ohm: 820,  etiquette: "820 Ω",  a: T1b57, b: T1a52}
+  R2:  {type: resistor, ohm: 1000, etiquette: "1 kΩ",   a: T1b52, b: T1a47}
+
+# Fils posés sur la plaque. de/vers = broche de connecteur (BNC1.core) ou trou (T1b62).
+fils:
+  - {n: 1, de: BNC1.core,   vers: T1b62,     couleur: rouge,  role: "Ue : âme du BNC 1 (signal GBF) vers le nœud E"}
+  - {n: 2, de: BNC1.shield, vers: TOP-L1-3,  couleur: noir,   role: "blindage du BNC 1 vers la masse (bus haut gauche)"}
+  - {n: 3, de: BNC2.core,   vers: T1c52,     couleur: orange, role: "Us : âme du BNC 2 (voie 2 de l'oscillo) vers le nœud S"}
+  - {n: 4, de: BNC2.shield, vers: TOP-L1-4,  couleur: noir,   role: "blindage du BNC 2 vers la masse"}
+  - {n: 5, de: T1b47,       vers: TOP-L1-5,  couleur: noir,   role: "bas de R2 vers la masse"}
+
+# Câbles BNC extérieurs (appareils -> plaque). Statut a_confirmer : à vérifier sur ton banc.
+cables:
+  - {id: A, nom: "BNC–BNC", de: gbf.out1,   vers: BNC1,     role: "GBF -> plaque (signal Ue)"}
+  - {id: B, nom: "BNC–BNC depuis le T", de: gbf.out1, vers: scope.ch1, via: T, role: "dérivation du GBF -> voie 1 (affiche Ue)"}
+  - {id: C, nom: "BNC–BNC", de: scope.ch2, vers: BNC2,     role: "voie 2 de l'oscillo <- plaque (mesure Us)"}
+tee: {sur: gbf.out1, statut: a_confirmer, preuve: "adaptateur chromé sur la sortie 1 du GBF ; 2 BNC seulement sur la plaque pour 3 liaisons (GBF, voie 1, voie 2)"}
+
+# Nœuds électriques exigés : tous les membres d'une liste doivent être dans le MÊME nœud, et deux nœuds nommés ne doivent jamais se toucher.
+noeuds:
+  E:   [BNC1.core, R1a.a, T1b62]
+  M:   [R1a.b, R1b.a]
+  S:   [R1b.b, R2.a, BNC2.core]
+  GND: [BNC1.shield, BNC2.shield, R2.b, T1b47, TOP-L1-3]
+
+calcul: {type: diviseur, haut: [R1a, R1b], bas: [R2], ue_vpp: 2.0}
+
+instruments:
+  gbf:
+    photo: gbf_ports
+    reglages: "Sinus · 2 Vpp · 1 kHz · offset 0 V · charge High Z · sortie ON"
+    etapes:
+      - {n: 1, cible: btn_waveform,  texte: "Waveform"}
+      - {n: 2, cible: softkey_1,     texte: "Touche à droite de l'écran en face de « Sine »"}
+      - {n: 3, cible: btn_parameter, texte: "Parameter, puis touche à droite en face de « Frequency », « Amplitude » ou « Offset »"}
+      - {n: 4, cible: [keypad_1, keypad_0, keypad_dot], texte: "Pavé : taper la valeur (1 kHz ; 2 Vpp ; 0 V), puis appuyer sur l'unité qui s'affiche à droite de l'écran"}
+      - {n: 5, cible: btn_ch1_setup, texte: "Setup (Channel 1) : charge « High Z » — chemin exact à vérifier sur ton appareil"}
+      - {n: 6, cible: btn_ch1_onoff, texte: "On/Off (Channel 1) : l'écran doit afficher ON (et non OFF)"}
+      - {n: 7, cible: out1,          texte: "Sortie 50 Ω : câble BNC vers la plaque (via le T)"}
+  scope:
+    photo: scope_front
+    reglages: "Voie 1 : 1 V/div · Voie 2 : 100 mV/div · 200 µs/div · déclenchement voie 1, front montant · couplage DC · sonde 1:1"
+    etapes:
+      - {n: 1, cible: btn_default_setup, texte: "Default Setup : remise à zéro"}
+      - {n: 2, cible: [btn_ch1, btn_ch2], texte: "Allumer les voies 1 et 2 ; vérifier couplage DC et sonde 1:1 dans le menu de chaque voie"}
+      - {n: 3, cible: knob_vert,  texte: "Échelle verticale : voie 1 = 1 V/div, voie 2 = 100 mV/div (choisir la voie avec les touches 1 / 2)"}
+      - {n: 4, cible: knob_horiz, texte: "Base de temps : 200 µs/div (une période de 1 ms = 5 carreaux)"}
+      - {n: 5, cible: btn_trig_menu, texte: "Trigger : source voie 1, front montant"}
+      - {n: 6, cible: btn_meas,   texte: "Meas : ajouter amplitude crête-crête (voies 1 et 2) et fréquence"}
+
+ecran_attendu:
+  tdiv: 0.0002
+  trig: {src: 1, level: "0.00V"}
+  panel: {mode: status, lignes: ["Acquisition", "Normal", "2.00GSa/s", "Voies", "DC     1.00:1", "DC     1.00:1"]}
+  ch1: {scale: 1.0, offset: -2.0, wave: {kind: sine, vpp: 2.0, f: 1000, phase: 0}}
+  ch2: {scale: 0.1, offset: 0.2,  wave: {kind: sine, vpp: __US_VPP__, f: 1000, phase: 0}}
+  bottom:
+    - {l: "Moy - PE(1):", v: "0.00V", c: ch1}
+    - {l: "Fréq(1):",     v: "1.000kHz", c: ch1}
+    - {l: "Max(1):",      v: "995mV", c: ch1}
+    - {l: "Max(2):",      v: "99.5mV", c: ch2}
+
+pannes:
+  - "Us = Ue : R2 non reliée à la masse (fil 5) ou blindage du BNC 2 non câblé."
+  - "Voie 2 plate : âme du BNC 2 (fil 3) mal enfoncée, ou voie 2 éteinte."
+  - "Ue ≈ 4 Vpp au lieu de 2 Vpp : charge du GBF réglée sur 50 Ω au lieu de High Z."
+  - "Les deux courbes se chevauchent : normal si les deux offsets sont à 0 ; sépare-les avec les boutons de position verticale."

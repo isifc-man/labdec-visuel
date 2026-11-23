@@ -52,7 +52,7 @@ const Feedback = (() => {
         <li><b>Lis le sujet</b> et les questions (onglets à droite), puis règle les appareils (🔍 zoom pour les agrandir).</li>
         <li><b>Câbles d'appareils</b> : clique une prise du GBF, de l'oscillo ou de l'alim, puis la grosse douille de la plaque (BNC 1, BNC 2, VB, VC, MASSE).</li>
         <li><b>Petits câbles de la plaque</b> : ceux qui pendent sous âme / blindage / VB / VC / MASSE. Clique le bout qui pend, puis le trou de la plaque où l'enficher.</li>
-        <li><b>Composants</b> : résistances E12 (10 Ω → 1 MΩ) et puces dans l'onglet Composants, fils avec l'outil « Fil ».</li>
+        <li><b>Composants</b> : résistances E12 (10 Ω → 1 MΩ) et puces dans le menu de gauche (sous les montages), fils avec l'outil « Fil ».</li>
         <li><b>Vérifie</b> : l'écran de l'oscillo se calcule à partir de ton câblage ; « Écran conforme » = validé. Bloqué ? Corrigé pas à pas (rôle → indice → poser).</li>
       </ol>
       <p class="mut">Une erreur dans un montage ou dans un écran ? Bouton <b>Signaler une erreur</b> en haut à droite : ton retour arrive directement chez l'auteur.</p>

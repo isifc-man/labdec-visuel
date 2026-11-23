@@ -1,4 +1,4 @@
-// Menu de gauche (TP → montages), panneau de droite (Sujet · Questions · Composants · Corrigé · État) et chargement d'un montage.
+// Menu de gauche (TP → montages), composants en bas du menu de gauche, panneau de droite (Sujet · Questions · Corrigé · État) et chargement d'un montage.
 // Tout le contenu vient de MONTAGES (YAML) : aucune fiche écrite à la main ici.
 const Lesson = (() => {
   const $ = s => document.querySelector(s);

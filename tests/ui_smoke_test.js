@@ -33,12 +33,20 @@ setTimeout(() => {
   ok(ev(`state.placedCables.length`) === 0, "deux douilles de plaque entre elles : refusé");
 
   // 2. les câbles du TP2 posés à la main (clic sur les prises puis sur les douilles)
-  const cab = (a, b) => ev(`(${JSON.stringify([a, b])}).forEach(e => e.indexOf(".") > 0 && /^(scope|gbf|psu)\\./.test(e) ? Cables.clickPort(e) : Cables.pickHole(e))`);
-  cab("gbf.out1", "BNC1.core"); cab("gbf.out1", "scope.ch1"); cab("scope.ch2", "BNC2.shield");
-  cab("psu.ch2_plus", "VC.main"); cab("psu.ch3_moins", "VB.main"); cab("psu.ch2_moins", "MASSE.main"); cab("psu.ch2_moins", "psu.ch3_plus");
+  const cab = (a, b) => ev(`(${JSON.stringify([a, b])}).forEach(e => /^(scope|gbf|psu)\\./.test(e) ? Cables.clickPort(e) : e.indexOf(".") > 0 ? Cables.pickHole(e) : Cables.clickConn(e))`);
+  cab("gbf.out1", "BNC1"); cab("gbf.out1", "scope.ch1"); cab("scope.ch2", "BNC2.shield");
+  cab("psu.ch2_plus", "VC"); cab("psu.ch3_moins", "VB"); cab("psu.ch2_moins", "MASSE"); cab("psu.ch2_moins", "psu.ch3_plus");
   ok(ev(`state.placedCables.length`) === 7, "7 câbles posés (A à G) : " + ev(`state.placedCables.map(c => c.id).join("")`));
   cab("gbf.out1", "scope.ch2");
   ok(ev(`state.placedCables.length`) === 7, "3e câble sur la sortie du GBF refusé (le T n'a que 2 sorties)");
+
+  const cols = ev(`state.placedCables.map(c => c.couleur).join(",")`);
+  ok(ev(`state.placedCables.every(c => c.couleur)`), "chaque câble a une couleur : " + cols);
+  ok(ev(`state.placedCables.find(c => c.vers === "VC").couleur`) === "rouge" && ev(`state.placedCables.find(c => c.vers === "VB").couleur`) === "noir", "bananes : + rouge, − noir");
+  ok(w.document.querySelectorAll(".conn-hit").length === 5 && !!w.document.getElementById("anchor-BNC1"), "5 douilles réelles cliquables (BNC1, BNC2, VB, VC, MASSE)");
+  ev(`Cables.cancel(); Cables.clickPort("scope.ch1"); Cables.clickConn("BNC2")`);
+  ok(ev(`state.placedCables.length`) === 7, "voie 1 déjà câblée : pas de 2e câble sur la même BNC");
+  ev(`Cables.cancel()`);
 
   // 3. câblage de la plaque = corrigé, SANS les câbles du corrigé : tout dépend des câbles posés
   ev(`(() => { const m = curMontage(); const w = wiringOfSolution(m); state.placedWires = (m.fils||[]).map(x => ({n:x.n,de:x.de,vers:x.vers,couleur:x.couleur||"rouge"}));

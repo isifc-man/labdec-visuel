@@ -63,7 +63,11 @@ function buildBoardGeometry() {
     { id: "MASSE", label: "MASSE (0V)", x: 675, col: "#0ea5a4", type: "banane" }
   ];
 
+  const LIVE = new Set(["BNC1", "BNC2", "VB", "VC", "MASSE"]);   // douilles reliées au moteur (les 2 bananes rouge/noire du haut sont décoratives)
+  let connHits = "";
   connsData.forEach(c => {
+    connSvg += `<circle id="anchor-${c.id}" cx="${c.x}" cy="60" r="1" fill="none"/>`;
+    if (LIVE.has(c.id)) connHits += `<circle class="conn-hit" data-conn="${c.id}" cx="${c.x}" cy="60" r="${c.type === "bnc" ? 30 : 24}" fill="transparent"><title>${c.label} : clique pour brancher un câble</title></circle>`;
     if (c.type === "bnc") {
       connSvg += `<circle cx="${c.x}" cy="60" r="27" fill="#cfd2d6" stroke="#7b8087" stroke-width="3"/>`;
       connSvg += `<circle cx="${c.x}" cy="60" r="16" fill="#9aa0a6"/><circle cx="${c.x}" cy="60" r="6" fill="#222"/>`;
@@ -92,7 +96,7 @@ function buildBoardGeometry() {
   HOLES.forEach(h => {
     targets += `<circle cx="${h.x}" cy="${h.y}" r="6" class="h-target" data-id="${h.id}"/>`;
   });
-  document.getElementById("svg-targets").innerHTML = targets;
+  document.getElementById("svg-targets").innerHTML = targets + connHits;
 
   // Injection du SVG dans le conteneur Split
   const host = document.getElementById("board-host-split");

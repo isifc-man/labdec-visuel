@@ -6,6 +6,7 @@ window.addEventListener("DOMContentLoaded", () => {
   buildBoardGeometry();
   setupBoardInteractions();
   Cables.init();
+  if (window.ResizeObserver) { const rz = new ResizeObserver(() => Cables.redraw()); ["lv-centre", "instruments", "boardzone"].forEach(i => rz.observe(document.getElementById(i))); }
   Zoom.init();
   Dock.init();
   Lesson.init();
@@ -25,7 +26,7 @@ function setupToolbar() {
   sel.value = String(state.resistorVal);
   document.querySelectorAll(".color-dot").forEach(d => d.addEventListener("click", () => {
     document.querySelectorAll(".color-dot").forEach(x => x.classList.remove("active"));
-    d.classList.add("active"); state.wireColor = d.dataset.color;
+    d.classList.add("active"); state.wireColor = d.dataset.color; state.cableColorSet = true;
   }));
   document.getElementById("resistor-val-input").addEventListener("change", e => { state.resistorVal = +e.target.value; state.armedRef = null; });
   document.getElementById("chip-val-input").addEventListener("change", e => { state.chipVal = e.target.value; state.armedRef = null; });

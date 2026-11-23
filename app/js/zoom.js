@@ -25,6 +25,7 @@ const Zoom = (() => {
     inst.classList.add("zoomed"); document.body.classList.add("zoom-on");
     const b = inst.querySelector(".zoom-btn"); if (b) b.textContent = "✕ fermer";
     window.dispatchEvent(new Event("resize"));
+    if (typeof Cables !== "undefined") Cables.redraw();
   }
   function close() {
     if (lb && lb.classList.contains("show")) { lb.classList.remove("show"); return; }
@@ -33,6 +34,7 @@ const Zoom = (() => {
     const b = cur.querySelector(".zoom-btn"); if (b) b.textContent = "🔍 zoom";
     cur = null;
     window.dispatchEvent(new Event("resize"));
+    if (typeof Cables !== "undefined") Cables.redraw();
   }
   function toggleInst(inst) { if (!inst) return; if (cur === inst) close(); else openInst(inst); }
 

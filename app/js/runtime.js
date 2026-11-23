@@ -93,6 +93,7 @@ function refreshAll() {
   if (typeof Gbf !== "undefined") Gbf.draw();
   if (typeof Psu !== "undefined") Psu.draw(an);
   if (typeof Faces !== "undefined") Faces.updateCables();
+  if (typeof Cables !== "undefined") Cables.redraw();
   if (typeof Dock !== "undefined") Dock.update();
   if (typeof Lesson !== "undefined") Lesson.refreshSteps();
   const box = document.getElementById("engine-alerts");

@@ -68,7 +68,7 @@ const Lesson = (() => {
     renderPlacedElements();
   }
   function clearWiring() { state.placedWires = []; state.placedComps = []; state.placedChips = []; state.placedCables = []; state.cableFirst = null; state.armedRef = null; }
-  const cableOf = c => ({ id: c.id, de: c.de, vers: c.vers, nom: c.nom || (c.de.indexOf("psu.") === 0 || c.vers.indexOf("psu.") === 0 ? "câble banane" : "câble BNC–BNC") });
+  const cableOf = c => ({ id: c.id, couleur: c.couleur || Cables.defaultColor(c), de: c.de, vers: c.vers, nom: c.nom || (c.de.indexOf("psu.") === 0 || c.vers.indexOf("psu.") === 0 ? "câble banane" : "câble BNC–BNC") });
   function putSolution(m) {
     const w = wiringOfSolution(m);
     state.placedCables = (m.cables || []).map(cableOf);

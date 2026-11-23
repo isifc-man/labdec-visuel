@@ -20,6 +20,7 @@ function setupBoardInteractions() {
   });
 
   targets.addEventListener("click", e => {
+    if (e.target.dataset.conn) { Cables.clickConn(e.target.dataset.conn); return; }
     const hid = e.target.dataset.id;
     if (!hid) return;
     handleHoleClick(hid);

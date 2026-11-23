@@ -15,7 +15,7 @@ body{margin:0;display:flex;flex-direction:column;overflow:hidden;background:#0b0
 .tp li.sel{background:#0c4a6e;color:#fff;border-left:3px solid var(--acc);padding-left:19px}
 .dot{width:14px;text-align:center;color:var(--mut);flex:none}.dot.ok{color:var(--ok)}.dot.cur{color:var(--warn)}
 #free{padding:9px 14px;color:var(--mut);cursor:pointer;border-top:1px solid var(--line);margin-top:8px}#free.sel{color:#fff;background:#0c4a6e}
-#lv-centre{overflow:auto;padding:10px;display:flex;flex-direction:column;gap:10px;min-width:0}
+#lv-centre{position:relative;overflow:auto;padding:10px;display:flex;flex-direction:column;gap:10px;min-width:0}
 #instruments{display:grid;grid-template-columns:1.15fr 1fr 1fr;gap:10px;align-items:start}
 .inst{background:var(--card);border:1px solid var(--line);border-radius:8px;padding:6px}
 .inst .cap{font-size:11px;color:var(--mut);padding:0 4px 4px}
@@ -103,3 +103,10 @@ details{margin:8px 0}summary{cursor:pointer;color:var(--text)}
 .lb-body{flex:1;overflow:auto;display:flex;justify-content:center;align-items:flex-start;padding:10px}
 #lb-img{background:#fff;max-width:100%;max-height:100%;object-fit:contain;cursor:zoom-in;margin:auto}
 #lightbox.full #lb-img{max-width:none;max-height:none;width:200%;cursor:zoom-out}
+
+/* ---- câbles dessinés entre les appareils et les douilles de la plaque ---- */
+#cable-layer{position:absolute;left:0;top:0;pointer-events:none;overflow:visible;z-index:10}
+body.zoom-on #cable-layer{display:none}
+#cable-layer.erasing path.cab{pointer-events:stroke;cursor:pointer}
+#cable-layer path.cab:hover{stroke-width:11}
+.conn-hit{cursor:pointer}.conn-hit:hover{fill:rgba(56,189,248,.18)}

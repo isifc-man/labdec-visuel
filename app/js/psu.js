@@ -1,6 +1,6 @@
 // Alimentation Keysight EDU36311A : 3 voies flottantes (6 V/5 A, 30 V/1 A, 30 V/1 A — ordre des voies supposé, cf. behavior.yaml).
-// Écran « Meter View » : tension et courant mesurés de chaque voie. Le courant vient du solveur (courant de la source) :
-// la consommation propre du TL081 (~1,4 mA par rail réel) n'est pas modélisée.
+// Écran « Meter View » : tension et courant MESURÉS de chaque voie (moyennes sur l'enregistrement du moteur).
+// Limite de courant simulée : au-delà, la voie passe en CC et sa tension chute (court-circuit compris).
 const Psu = (() => {
   let els = null, cv = null, ctx = null;
   const P = () => state.psu;
@@ -48,11 +48,12 @@ const Psu = (() => {
       if (sel) { ctx.strokeStyle = "#e2e8f0"; ctx.lineWidth = 2 * u; ctx.strokeRect(x, 6, colW - 6, H - 40 * u); }
       ctx.fillStyle = COL[k]; ctx.fillRect(x, 6, colW - 6, 18 * u);
       ctx.fillStyle = "#04101c"; ctx.font = `bold ${12 * u}px Arial`; ctx.textBaseline = "middle"; ctx.fillText("CH" + k, x + 8 * u, 15 * u);
-      const iOut = c.on && an && an.psuI && an.psuI[k] != null ? Math.max(0, an.psuI[k]) : 0;
-      const cc = c.on && iOut >= c.i - 1e-6;
+      const r = an && an.rec && an.rec.psu ? an.rec.psu[k] : null;
+      const iOut = c.on && r ? Math.abs(r.i) : 0, vOut = c.on ? (r ? r.v : c.v) : 0;
+      const cc = c.on && !!(r && r.cc);
       ctx.textAlign = "right";
-      ctx.fillStyle = c.on ? "#f8fafc" : "#475569"; ctx.font = `bold ${19 * u}px Arial`;
-      ctx.fillText((c.on ? c.v : 0).toFixed(3) + " V", x + colW - 12 * u, 56 * u);
+      ctx.fillStyle = c.on ? (cc ? "#fca5a5" : "#f8fafc") : "#475569"; ctx.font = `bold ${19 * u}px Arial`;
+      ctx.fillText(vOut.toFixed(3) + " V", x + colW - 12 * u, 56 * u);
       ctx.font = `${15 * u}px Arial`; ctx.fillText(iOut.toFixed(3) + " A", x + colW - 12 * u, 88 * u);
       ctx.textAlign = "left"; ctx.font = `${10.5 * u}px Arial`;
       ctx.fillStyle = c.on ? (cc ? "#f87171" : "#4ade80") : "#64748b"; ctx.fillText(c.on ? (cc ? "CC" : "CV") : "OFF", x + 8 * u, 40 * u);

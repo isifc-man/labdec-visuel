@@ -51,8 +51,10 @@ function setupBoardInteractions() {
       if (ce && ce.t === "conn" && Cables.removeAt(hid.split(".")[0])) return;
       const wIdx = state.placedWires.findIndex(w => w.de === hid || w.vers === hid);
       if (wIdx >= 0) { state.placedWires.splice(wIdx, 1); renderPlacedElements(); return; }
-      const rIdx = state.placedComps.findIndex(r => r.a === hid || r.b === hid);
+      const rIdx = state.placedComps.findIndex(r => r.a === hid || r.b === hid || r.k === hid);
       if (rIdx >= 0) { state.placedComps.splice(rIdx, 1); renderPlacedElements(); return; }
+      const cIdx = state.placedChips.findIndex(ch => { const spec = CHIPS_LIB[ch.modele]; for (let p = 1; spec && p <= spec.dip; p++) if (Engine.pinHole(ch, p, CHIPS_LIB) === hid) return true; return false; });
+      if (cIdx >= 0) { state.placedChips.splice(cIdx, 1); renderPlacedElements(); return; }
       return;
     }
 
@@ -62,7 +64,7 @@ function setupBoardInteractions() {
       const blk = hid.slice(0, 2);
       const rowMatch = hid.match(/\d+$/);
       if (!rowMatch) return;
-      const cref = (state.armedRef && /^U/.test(state.armedRef)) ? state.armedRef : "U" + (state.placedChips.length + 1);
+      const cref = (state.armedRef && /^U/.test(state.armedRef)) ? state.armedRef : nextName("U", state.placedChips, "ref");
       state.placedChips = state.placedChips.filter(c => c.ref !== cref).concat([{
         ref: cref,
         modele: state.chipVal,
@@ -92,6 +94,11 @@ function setupBoardInteractions() {
       if (h1 !== h2) {
         if (state.tool === "wire") {
           state.placedWires.push({ n: state.placedWires.length + 1, de: h1, vers: h2, couleur: state.pendingColor || state.wireColor });
+        } else if (state.tool === "led") {
+          const lname = state.armedRef && !/^(R|U)/.test(state.armedRef) ? state.armedRef : nextName("D", state.placedComps, "name");
+          state.placedComps = state.placedComps.filter(c => c.name !== lname);
+          state.armedRef = null;
+          state.placedComps.push({ name: lname, type: "led", a: h1, k: h2, etiquette: "LED" });
         } else if (state.tool === "resistor") {
           const val = state.resistorVal;
           const rname = state.armedRef && /^R/.test(state.armedRef) ? state.armedRef : nextName("R", state.placedComps, "name");

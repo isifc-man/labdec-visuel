@@ -135,3 +135,15 @@ body.zoom-on #cable-layer{display:none}
 #lv-nav .t-btn[data-tool=cable]{grid-column:1/-1}
 #lv-nav #boardbar>div:nth-child(2){display:flex;gap:7px;flex-wrap:wrap;justify-content:center}
 #boardstatus{display:flex;gap:14px;align-items:center;flex-wrap:wrap;padding:6px 10px;border-bottom:1px solid var(--line);min-height:1.4em}
+/* Écrans étroits (tablette en portrait, téléphone) : une seule colonne qui défile au lieu de faire disparaître la plaque */
+@media(max-width:980px){
+  html,body{height:auto}body{overflow:auto}
+  .lv-top{flex-wrap:wrap;gap:6px;padding:6px 8px}.lv-top #cur-title{display:none}
+  .lv-main{display:flex;flex-direction:column;min-height:0}
+  #lv-nav{max-height:46vh;border-right:0;border-bottom:1px solid var(--line)}
+  #lv-centre{overflow:visible;padding:6px}
+  aside{border-left:0;border-top:1px solid var(--line);min-height:70vh}
+  #dock{right:8px;width:min(420px,72vw)}
+  .inst.zoomed{grid-template-columns:1fr;left:1vw;right:1vw}.inst.zoomed .zoom-side{grid-column:1;grid-row:auto}
+}
+.led-glow{filter:blur(4px);pointer-events:none}

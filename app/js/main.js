@@ -32,8 +32,7 @@ function setupToolbar() {
   document.getElementById("resistor-val-input").addEventListener("change", e => { state.resistorVal = +e.target.value; state.armedRef = null; });
   document.getElementById("chip-val-input").addEventListener("change", e => { state.chipVal = e.target.value; state.armedRef = null; });
   document.getElementById("btn-undo").addEventListener("click", () => {
-    if (state.placedWires.length) state.placedWires.pop(); else if (state.placedComps.length) state.placedComps.pop(); else if (state.placedChips.length) state.placedChips.pop(); else state.placedCables.pop();
-    Cables.cancel(); renderPlacedElements();
+    Cables.cancel(); History.undo(); renderPlacedElements();
   });
   document.getElementById("btn-zero").addEventListener("click", () => {
     Lesson.clearWiring(); if (state.currentMontage) { state.progress[state.currentMontage] = "todo"; saveProgress(); }

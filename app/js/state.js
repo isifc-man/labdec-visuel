@@ -8,7 +8,7 @@ function factoryInstruments() {
   return {
     gbf: { on: false, wave: "sine", f: 1000, vpp: 0.1, offset: 0, load: "50", menu: "home", page: 1, field: null, buf: "" },
     psu: { sel: 1, field: "v", buf: "", ch: { 1: { v: 0, i: 0.1, on: false }, 2: { v: 0, i: 0.1, on: false }, 3: { v: 0, i: 0.1, on: false } } },
-    scope: { running: true, frozen: null, selCh: 1, tdiv: 1e-3, trigLevel: 0, measPage: 0, cursors: false, menu: "home",
+    scope: { running: true, frozen: null, selCh: 1, tdiv: 1e-3, hpos: 0, trigLevel: 0, trigSrc: 1, trigSlope: 1, measPage: 0, cursors: false, cursSel: 0, menu: "home",
       ch: { 1: { on: true, vdiv: 1, pos: 0 }, 2: { on: true, vdiv: 1, pos: 0 } }, curs: { x1: -1.5, x2: 1.5, y1: 2, y2: -2 } },
   };
 }
@@ -23,6 +23,20 @@ const state = Object.assign({
 }, factoryInstruments());
 
 try { Object.assign(state.progress, JSON.parse(localStorage.getItem("labdec.progress") || "{}")); } catch (e) { /* stockage indisponible : on continue sans */ }
+// Annuler : chaque changement de câblage (fil, composant, puce, câble) est empilé ; « annuler » revient à l'état précédent.
+const History = (() => {
+  let stack = [], last = null;
+  const snap = () => JSON.stringify([state.placedWires, state.placedComps, state.placedChips, state.placedCables]);
+  function track() { const s = snap(); if (last !== null && s !== last) { stack.push(last); if (stack.length > 200) stack.shift(); } last = s; }
+  function undo() {
+    if (!stack.length) return false;
+    const prev = JSON.parse(stack.pop());
+    [state.placedWires, state.placedComps, state.placedChips, state.placedCables] = prev;
+    last = JSON.stringify(prev); return true;
+  }
+  function reset() { stack = []; last = snap(); }
+  return { track, undo, reset, size: () => stack.length };
+})();
 function saveProgress() { try { localStorage.setItem("labdec.progress", JSON.stringify(state.progress)); } catch (e) { /* ignoré */ } }
 
 // Premier nom libre « R1, R2… » : évite les doublons après suppression

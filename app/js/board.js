@@ -144,7 +144,18 @@ function renderPlacedElements() {
 
   // Résistances
   let rSvg = "";
-  state.placedComps.forEach(r => {
+  state.placedComps.filter(c => c.type === "led").forEach(l => {
+    const h1 = HOLE_MAP.get(l.a), h2 = HOLE_MAP.get(l.k);
+    if (!h1 || !h2) return;
+    const mx = (h1.x + h2.x) / 2.0, my = (h1.y + h2.y) / 2.0, id = String(l.name).replace(/[^\w-]/g, "_");
+    rSvg += `<line x1="${h1.x}" y1="${h1.y}" x2="${mx}" y2="${my}" stroke="#bbb" stroke-width="3"/><line x1="${mx}" y1="${my}" x2="${h2.x}" y2="${h2.y}" stroke="#888" stroke-width="2"/>`;
+    rSvg += `<circle id="led-glow-${id}" class="led-glow" cx="${mx}" cy="${my}" r="17" fill="#ff2a2a" opacity="0"/>`;
+    rSvg += `<circle id="led-body-${id}" cx="${mx}" cy="${my}" r="8" fill="#7f1d1d" stroke="#fecaca" stroke-width="1.5"/>`;
+    rSvg += `<text x="${h1.x + (h1.x <= h2.x ? -9 : 9)}" y="${h1.y + 4}" font-size="11" font-weight="700" fill="#fca5a5" text-anchor="middle" font-family="Arial">+</text>`;
+    rSvg += `<text x="${Math.max(h1.x, h2.x) + 14}" y="${my + 4}" font-size="11" font-weight="700" fill="#fca5a5" font-family="Arial">${l.name}</text>`;
+    rSvg += `<circle cx="${h1.x}" cy="${h1.y}" r="4" fill="#333" stroke="#fff" stroke-width="1.5"/><circle cx="${h2.x}" cy="${h2.y}" r="4" fill="#333" stroke="#fff" stroke-width="1.5"/>`;
+  });
+  state.placedComps.filter(c => c.type !== "led").forEach(r => {
     const h1 = HOLE_MAP.get(r.a), h2 = HOLE_MAP.get(r.b);
     if (!h1 || !h2) return;
     const mx = (h1.x + h2.x) / 2.0, my = (h1.y + h2.y) / 2.0;
@@ -221,3 +232,29 @@ function renderLeads() {
   });
   g.innerHTML = s;
 }
+
+// LED allumées : luminosité ∝ courant. En dessous de ~25 Hz la LED clignote en temps réel (comme sur la table) ;
+// au-dessus, l'œil ne voit plus le clignotement : on affiche la luminosité moyenne.
+const Leds = (() => {
+  let an = null, raf = 0, t0 = performance.now();
+  const lum = i => Math.max(0, Math.min(1, i / 0.01));        // 10 mA = pleine luminosité
+  function paint(name, i) {
+    const id = String(name).replace(/[^\w-]/g, "_"), g = document.getElementById("led-glow-" + id), b = document.getElementById("led-body-" + id);
+    if (!g || !b) return;
+    const L = i > 3e-4 ? 0.25 + 0.75 * lum(i) : 0;
+    g.setAttribute("opacity", (0.85 * L).toFixed(3)); b.setAttribute("fill", L ? `rgb(${Math.round(150 + 105 * L)},${Math.round(30 + 60 * L)},${Math.round(30 + 60 * L)})` : "#7f1d1d");
+  }
+  function frame() {
+    raf = 0; if (!an || !an.rec) return;
+    const rec = an.rec, slow = !rec.dc && rec.P > 0 && rec.T >= 1 / 25;
+    Object.entries(rec.leds).forEach(([n, l]) => {
+      if (!slow) { paint(n, l.avg); return; }
+      const tm = ((performance.now() - t0) / 1000) % rec.P, t = rec.t; let k = 0, hi = t.length - 1;
+      while (hi - k > 1) { const m = (k + hi) >> 1; if (t[m] <= tm) k = m; else hi = m; }
+      paint(n, l.i[k]);
+    });
+    if (slow && Object.keys(rec.leds).length) raf = requestAnimationFrame(frame);
+  }
+  function update(a) { an = a; if (raf) cancelAnimationFrame(raf); raf = 0; frame(); }
+  return { update };
+})();

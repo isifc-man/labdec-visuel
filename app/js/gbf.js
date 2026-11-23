@@ -6,8 +6,9 @@ const Gbf = (() => {
   const G = () => state.gbf;
   const FIELDS = {
     freq: { name: "Frequency", units: [["MHz", 1e6], ["kHz", 1e3], ["Hz", 1], ["mHz", 1e-3]], get: g => g.f, set: (g, v) => { g.f = Math.max(1e-3, Math.min(2e7, v)); } },
-    amp: { name: "Amplitude", units: [["Vpp", 1], ["mVpp", 1e-3], ["", 1], ["", 1]], get: g => g.vpp, set: (g, v) => { g.vpp = Math.max(1e-3, Math.min(10, v)); } },
-    off: { name: "Offset", units: [["V", 1], ["mV", 1e-3], ["", 1], ["", 1]], get: g => g.offset, set: (g, v) => { g.offset = Math.max(-5, Math.min(5, v)); } },
+    // limites de l'EDU33211A : 10 Vpp et ±5 V sur 50 Ω, le double en « High Z » ; |offset| + Vpp/2 ne dépasse pas la plage
+    amp: { name: "Amplitude", units: [["Vpp", 1], ["mVpp", 1e-3], ["", 1], ["", 1]], get: g => g.vpp, set: (g, v) => { const L = g.load === "50" ? 5 : 10; g.vpp = Math.max(1e-3, Math.min(2 * (L - Math.abs(g.offset)), v)); } },
+    off: { name: "Offset", units: [["V", 1], ["mV", 1e-3], ["", 1], ["", 1]], get: g => g.offset, set: (g, v) => { const L = g.load === "50" ? 5 : 10; g.offset = Math.max(-(L - g.vpp / 2), Math.min(L - g.vpp / 2, v)); } },
   };
 
   function init(root) { els = Faces.build("gbf", root, { press, turn }); cv = els.canvas; ctx = cv.getContext("2d"); }

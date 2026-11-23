@@ -42,8 +42,9 @@ const Lesson = (() => {
   function applyPreset(p) {
     const f = factoryInstruments();
     state.gbf = f.gbf; state.psu = f.psu; state.scope = f.scope;
-    if (p.gbf) Object.assign(state.gbf, p.gbf, { on: true });
-    [1, 2, 3].forEach(k => { if (p.psu[k] != null) Object.assign(state.psu.ch[k], { v: p.psu[k], i: p.psuI[k] || 0.1, on: true }); });
+    // réglages du montage déjà saisis, mais sorties ÉTEINTES : on allume après avoir vérifié le câblage (consigne du sujet)
+    if (p.gbf) Object.assign(state.gbf, p.gbf, { on: false });
+    [1, 2, 3].forEach(k => { if (p.psu[k] != null) Object.assign(state.psu.ch[k], { v: p.psu[k], i: p.psuI[k] || 0.1, on: false }); });
     [1, 2].forEach(n => { if (p.scope.ch[n]) state.scope.ch[n].vdiv = p.scope.ch[n]; });
     if (p.scope.tdiv) state.scope.tdiv = p.scope.tdiv;
   }
@@ -66,6 +67,7 @@ const Lesson = (() => {
     $("#cur-title").textContent = m ? m.titre : "Mode libre (câbles d'appareils du TP2)";
     paintNav(); renderAll(); Dock.setSubject(m);
     renderPlacedElements();
+    History.reset();
   }
   function clearWiring() { state.placedWires = []; state.placedComps = []; state.placedChips = []; state.placedCables = []; state.cableFirst = null; state.armedRef = null; }
   const cableOf = c => ({ id: c.id, couleur: c.couleur || Cables.defaultColor(c), de: c.de, vers: c.vers, nom: c.nom || (c.de.indexOf("psu.") === 0 || c.vers.indexOf("psu.") === 0 ? "câble banane" : "câble BNC–BNC") });
@@ -73,7 +75,8 @@ const Lesson = (() => {
     const w = wiringOfSolution(m);
     state.placedCables = (m.cables || []).map(cableOf);
     state.placedWires = (m.fils || []).map(x => ({ n: x.n, de: x.de, vers: x.vers, couleur: x.couleur || "rouge" }));
-    state.placedComps = Object.entries(m.composants || {}).filter(([, c]) => c.type === "resistor").map(([name, c]) => ({ name, type: "resistor", a: c.a, b: c.b, ohm: c.ohm, etiquette: fmtOhm(c.ohm) }));
+    state.placedComps = Object.entries(m.composants || {}).filter(([, c]) => c.type === "resistor" || c.type === "led").map(([name, c]) => c.type === "led"
+      ? { name, type: "led", a: c.a, k: c.k, etiquette: "LED" } : { name, type: "resistor", a: c.a, b: c.b, ohm: c.ohm, etiquette: fmtOhm(c.ohm) });
     state.placedChips = JSON.parse(JSON.stringify(m.puces || []));
     return w;
   }
@@ -124,20 +127,21 @@ const Lesson = (() => {
 
   function scenarioAnswer(m, sc) {
     const g = sc.gbf || {}, wave = g.kind === "square" ? "square" : g.kind === "triangle" ? "triangle" : "sine";
-    const ge = { f: g.f || 1000, vpp: (g.charge === "50" ? 2 : 1) * (g.vpp || 1), offset: g.offset || 0, wave, on: true };
-    const c = presetConditions(), an = Engine.analyze(wiringOfSolution(m), envFor(m.cables, ge, c.psu), ge);
+    const ge = { f: g.f || 1000, vpp: (g.charge === "50" ? 2 : 1) * (g.vpp || 1), offset: (g.charge === "50" ? 2 : 1) * (g.offset || 0), wave, on: true };
+    const c = presetConditions(), an = Engine.analyze(wiringOfSolution(m), envFor(m.cables), { gbf: ge, psu: c.psu });
     if (!an.supported) return `<span class="mut">Non simulé : ${esc(an.reasons.join(" "))}</span>`;
-    const T = 1 / ge.f, w = Engine.waveforms(an, ge, niceUp(T * 3 / 10), 600);
-    const sat = an.hasOpamp && w.stats.ch2.max >= an.rails.hi - 0.05;
-    return `Vpp(1) = ${fmtV(w.stats.ch1.vpp)} · Vpp(2) = ${fmtV(w.stats.ch2.vpp)}<br>|Vs/Ve| = ${an.gain.toFixed(3)} · phase = ${an.phaseDeg.toFixed(0)}°` +
-      (sat ? `<br><b>Sortie écrêtée à ±${an.rails.hi.toFixed(1)} V</b> (saturation)` : "") + `<br><span class="mut">Calculé par le moteur sur le câblage corrigé.</span>`;
+    const rec = an.rec, ms = k => rec.ch[k] ? Engine.measure(rec, k, 0, 2 * rec.P + 1e-15) : null, m1 = ms("ch1"), m2 = ms("ch2"), ph = Engine.phase(rec);
+    const sat = an.notes.filter(n => /saturation|vitesse de montée/.test(n));
+    return (m1 ? `Cr-cr(1) = ${fmtV(m1.vpp)}` : "") + (m2 ? ` · Cr-cr(2) = ${fmtV(m2.vpp)} · Max(2) = ${fmtV(m2.max)}` : "") +
+      (ph != null ? `<br>Phase(2→1) = ${(Math.abs(ph) < 0.5 ? 0 : ph).toFixed(0)}°` : "") + (an.gain != null && !an.digital ? ` · |Vs/Ve| (fondamental) = ${an.gain.toFixed(3)}` : "") +
+      (sat.length ? `<br><b>${esc(sat.join(" "))}</b>` : "") + `<br><span class="mut">Calculé par le moteur sur le câblage corrigé.</span>`;
   }
   function renderQuestions() {
     const m = curMontage(), el = $("#p-quest");
     if (!m) { el.innerHTML = "<p class='mut'>Pas de questions en mode libre.</p>"; return; }
     const qp = pieceList(m, ["q", "enonce"]).filter(([, p]) => p.k === "q");
     const qhead = qp.length ? `<h4>Questions du sujet</h4>` + qp.map(figure).join("") : "";
-    if (!m.questions.length) { el.innerHTML = qhead + "<p class='mut'>Aucune question « à prédire » dans les fichiers de prédictions pour ce montage (TP3 : à écrire).</p>"; bindFigures(el); return; }
+    if (!m.questions.length) { el.innerHTML = qhead + "<p class='mut'>Pas de question « à prédire » écrite pour ce montage : câble-le, allume les appareils et observe l'écran.</p>"; bindFigures(el); return; }
     el.innerHTML = qhead + (qp.length ? "<h4>À prédire avant de câbler</h4>" : "") + m.questions.map((q, i) => `<div class="q"><div class="mut">${esc(q.titre)}</div><b>${i + 1}. ${esc(q.q)}</b>
       <div><button class="btn" data-q="${i}">voir ce que l'écran affiche</button><div class="reveal" id="rev${i}"></div></div></div>`).join("");
     el.querySelectorAll("[data-q]").forEach(b => b.onclick = () => { const i = +b.dataset.q, r = $("#rev" + i); r.innerHTML = scenarioAnswer(m, m.questions[i]); r.style.display = "block"; });
@@ -150,6 +154,7 @@ const Lesson = (() => {
     return `<details open><summary><b>Boîte de résistances E12</b> (10 Ω → 1 MΩ)</summary>` +
       dec.map(([a, b]) => `<div class="row">${E12_ALL.filter(v => v >= a && v <= b).map(v => `<span class="chip" data-r="" data-v="${v}">${ohmLabel(v)}</span>`).join("")}</div>`).join("") +
       `<div class="row"><span class="chip" data-r="" data-v="1000000">1 MΩ</span></div></details>` +
+      `<details open><summary><b>LED</b></summary><div class="row"><span class="chip" data-led="">LED rouge</span></div><p class="mut">Clique d'abord le trou de l'ANODE (patte longue, côté +), puis celui de la cathode.</p></details>` +
       `<details><summary><b>Puces</b></summary><div class="row">${Object.keys(CHIPS_LIB).map(k => `<span class="chip" data-chip="" data-m="${k}">${k} (${CHIPS_LIB[k].dip} broches)</span>`).join("")}</div></details>` +
       `<details open><summary><b>Câbles d'appareils</b></summary><p class="mut">Clique une prise sur la face d'un appareil, puis la douille de la plaque (BNC 1, BNC 2, VB, VC, MASSE, banane rouge / noire de gauche) ou une autre prise d'appareil. BNC avec BNC, banane avec banane. Le T du GBF : deux câbles sur la sortie 1.</p>` +
       `<div class="row"><button class="btn" id="btn-cable-tool">outil « Câble d'appareil »</button></div></details>`;
@@ -157,6 +162,7 @@ const Lesson = (() => {
   function bindBox(el) {
     el.querySelectorAll("[data-r]").forEach(c => c.onclick = () => arm(c.dataset.r || null, +c.dataset.v, "resistor"));
     el.querySelectorAll("[data-chip]").forEach(c => c.onclick = () => arm(c.dataset.chip || null, c.dataset.m, "chip"));
+    el.querySelectorAll("[data-led]").forEach(c => c.onclick = () => arm(c.dataset.led || null, "LED", "led"));
     const bt = el.querySelector("#btn-cable-tool"); if (bt) bt.onclick = () => { document.querySelector('.t-btn[data-tool="cable"]').click(); };
   }
 
@@ -170,18 +176,19 @@ const Lesson = (() => {
         return `<div class="cp"><b>${name}</b><div class="row">${pal.map(v => `<span class="chip" data-r="${name}" data-v="${v}">${fmtOhm(v)}</span>`).join("")}</div>` +
           (inE12 ? "" : `<div class="mut">${fmtOhm(c.ohm)} n'est pas dans la série E12 du labo : à réaliser avec deux résistances en série (le sujet impose la série E12).</div>`) + `</div>`;
       }).join("") +
+      Object.entries(m.composants).filter(([, c]) => c.type === "led").map(([n]) => `<div class="cp"><b>${n}</b><div class="row"><span class="chip" data-led="${n}">LED rouge</span></div></div>`).join("") +
       chips.map(ch => `<div class="cp"><b>${ch.ref}</b><div class="row"><span class="chip" data-chip="${ch.ref}" data-m="${ch.modele}">${ch.modele} (${CHIPS_LIB[ch.modele].dip} broches)</span></div></div>`).join("") +
       `<hr>` + resistorBox() + `<p class="mut" id="armed">Aucun composant armé.</p>`;
     bindBox(el);
   }
   function arm(ref, val, kind) {
     state.armedRef = ref;
-    if (kind === "resistor") { state.resistorVal = val; state.tool = "resistor"; } else { state.chipVal = val; state.tool = "chip"; }
+    if (kind === "resistor") { state.resistorVal = val; state.tool = "resistor"; } else if (kind === "led") state.tool = "led"; else { state.chipVal = val; state.tool = "chip"; }
     Cables.cancel();
     document.querySelectorAll(".t-btn").forEach(b => b.classList.toggle("active", b.dataset.tool === state.tool));
-    const who = ref ? `<b>${ref}</b>` : (kind === "resistor" ? "Une résistance" : "Une puce");
-    $("#armed").innerHTML = `${who} armée${kind === "resistor" ? " = " + fmtOhm(val) : " (" + val + ")"} : ${kind === "resistor" ? "clique les deux trous" : "clique le trou de la broche 1"} sur la plaque.`;
-    document.querySelectorAll("#p-compo .chip").forEach(c => c.classList.toggle("on", (ref ? c.dataset.r === ref && +c.dataset.v === val : c.dataset.r === "" && +c.dataset.v === val) || (kind === "chip" && c.dataset.chip === (ref || "") && (ref || c.dataset.m === val))));
+    const who = ref ? `<b>${ref}</b>` : (kind === "resistor" ? "Une résistance" : kind === "led" ? "Une LED" : "Une puce");
+    $("#armed").innerHTML = `${who} armée${kind === "resistor" ? " = " + fmtOhm(val) : kind === "led" ? "" : " (" + val + ")"} : ${kind === "resistor" ? "clique les deux trous" : kind === "led" ? "clique le trou de l'anode (patte longue) puis celui de la cathode" : "clique le trou de la broche 1"} sur la plaque.`;
+    document.querySelectorAll("#p-compo .chip").forEach(c => c.classList.toggle("on", (kind === "resistor" && (ref ? c.dataset.r === ref && +c.dataset.v === val : c.dataset.r === "" && +c.dataset.v === val)) || (kind === "chip" && c.dataset.chip === (ref || "") && (ref || c.dataset.m === val)) || (kind === "led" && c.dataset.led === (ref || ""))));
     syncToolbar();
   }
 
@@ -193,6 +200,8 @@ const Lesson = (() => {
       done: () => state.placedChips.some(c => c.ref === ch.ref && c.bloc === ch.bloc && c.rangee_broche1 === ch.rangee_broche1), put: () => { state.placedChips = state.placedChips.filter(c => c.ref !== ch.ref).concat([JSON.parse(JSON.stringify(ch))]); } }));
     Object.entries(m.composants).filter(([, c]) => c.type === "resistor").forEach(([n, c]) => st.push({ kind: "res", text: `Poser ${n} = ${fmtOhm(c.ohm)}`, hint: `${c.a} → ${c.b}`,
       done: () => state.placedComps.some(x => x.name === n && x.ohm === c.ohm && sameEnds(x.a, x.b, c.a, c.b)), put: () => { state.placedComps = state.placedComps.filter(x => x.name !== n).concat([{ name: n, type: "resistor", a: c.a, b: c.b, ohm: c.ohm, etiquette: fmtOhm(c.ohm) }]); } }));
+    Object.entries(m.composants).filter(([, c]) => c.type === "led").forEach(([n, c]) => st.push({ kind: "led", text: `Poser ${n} (LED) : patte longue = anode côté +`, hint: `anode ${c.a} → cathode ${c.k}`,
+      done: () => state.placedComps.some(x => x.type === "led" && x.a === c.a && x.k === c.k), put: () => { state.placedComps = state.placedComps.filter(x => x.name !== n).concat([{ name: n, type: "led", a: c.a, k: c.k, etiquette: "LED" }]); } }));
     (m.cables || []).forEach(c => st.push({ kind: "cable", text: `Câble ${c.id} — ${c.nom || ""}` + (c.role ? ` : ${c.role}` : ""), hint: `${Cables.label(c.de)} ↔ ${Cables.label(c.vers)}` + (c.via ? " (par l'adaptateur en T)" : ""),
       done: () => state.placedCables.some(x => sameEnds(x.de, x.vers, c.de, c.vers)), put: () => { if (!state.placedCables.some(x => sameEnds(x.de, x.vers, c.de, c.vers))) state.placedCables.push(cableOf(c)); } }));
     (m.fils || []).forEach(w => st.push({ kind: "wire", text: w.role || `Fil ${w.n}`, hint: `${w.de} → ${w.vers} (${w.couleur || "—"})`,
@@ -231,6 +240,7 @@ const Lesson = (() => {
 })();
 
 function syncToolbar() {
+  document.querySelectorAll(".t-btn").forEach(b => b.classList.toggle("active", b.dataset.tool === state.tool));
   document.getElementById("resistor-select-box").style.display = state.tool === "resistor" ? "flex" : "none";
   document.getElementById("chip-select-box").style.display = state.tool === "chip" ? "flex" : "none";
   const rv = document.getElementById("resistor-val-input"); if (rv && ![...rv.options].some(o => +o.value === state.resistorVal)) rv.add(new Option(String(state.resistorVal), state.resistorVal));

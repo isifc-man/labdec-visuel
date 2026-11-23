@@ -1,7 +1,7 @@
 // Aide + « Signaler une erreur » : ouvre une Issue GitHub pré-remplie (montage, type, état du câblage, version de l'app).
 // Pas de serveur : les retours arrivent dans l'onglet Issues du dépôt ; `python tools/feedback.py` les rassemble.
 const Feedback = (() => {
-  const REPO = (typeof window !== "undefined" && window.LABDEC_REPO) || "Manprofessionalenterprises/labdec-visuel";
+  const REPO = (typeof window !== "undefined" && window.LABDEC_REPO) || "isifc-man/labdec-visuel";
   const BUILD = "__BUILD__";
   const TYPES = ["Erreur dans un montage (fil, résistance, trou, câble)", "Écran d'appareil incorrect", "Énoncé ou question", "Bug de l'application", "Idée / amélioration"];
   const $ = s => document.querySelector(s);

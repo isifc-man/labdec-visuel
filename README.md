@@ -5,7 +5,7 @@ Simulateur de TP d'électronique (plaque d'essai, générateur, oscilloscope, al
 > Projet étudiant indépendant. Non affilié à Keysight ni à l'établissement. Les noms d'appareils ne servent qu'à décrire le matériel simulé.
 
 ## Utiliser
-**Lien direct : https://manprofessionalenterprises.github.io/labdec-visuel/**  (rien à installer, fonctionne aussi hors ligne une fois chargé)
+**Lien direct : https://isifc-man.github.io/labdec-visuel/**  (rien à installer, fonctionne aussi hors ligne une fois chargé)
 
 Ouvrir le lien de l'application (GitHub Pages) ou, en local : `python tools/build_app.py` puis ouvrir `out/labdec_app.html`. Prérequis : Python 3 + `pip install pyyaml`, Node.js pour les tests.
 

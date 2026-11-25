@@ -17,4 +17,6 @@ Base : `isifc-man/labdec-visuel` @ `a58999f` (origin/main, aucun commit ni ticke
 | 11 | Clic simple sur une prise (vrai Chrome 127.0.0.1) | état lu après chaque clic | 1er clic : outil « câble » + bout armé, 0 câble ; 2e clic : 1 câble `A` | comportement conforme, testé |
 | 12 | Double-clic sur un câble posé (vrai Chrome, code d'origine) | `double_click` sur le câble A | **aucun effet** (impossible de déplacer sans la gomme) | **corrigé** (déplacement par double-clic) |
 | 13 | Déplacement de câble (jsdom, 19 tests) | clic simple, double-clic, Échap, refus, BNC prise, gomme, changement de montage | tous OK | — |
-| 14 | Déplacement de câble dans le vrai Chrome (après correction) | — | **non refait** : extension Chrome déconnectée en cours de route | à refaire |
+| 14 | Déplacement de câble dans le vrai Chrome, sur le site déployé (après correction) | vrais clics et vrai double-clic : poser A (GBF → BNC 1), double-clic sur le câble, clic sur BNC 2 ; puis double-clic et Échap | décroché (message affiché, trait qui suit la souris) ; rebranché en `A:gbf.out1>BNC2:jaune` (même lettre, même couleur, 1 seul câble) ; Échap remet le câble | conforme |
+| 15 | Site déployé `isifc-man.github.io/labdec-visuel` | Chrome : `Cables.liftAt`, `Dmm`, `Train`, `Docs`, outil LED, 12 montages | tout présent | conforme |
+| 16 | Remarque d'ergonomie (non corrigée) | Le message d'état d'un câble ajoute une ligne et décale la plaque de ~31 px vers le bas après le 1er clic | à surveiller : la douille visée bouge entre les 2 clics | à décider |

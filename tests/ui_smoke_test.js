@@ -151,6 +151,61 @@ setTimeout(() => {
   ev(`Lesson.putSolution(curMontage()); renderPlacedElements()`);
   ok(/Panne trouvée/.test(ev(`document.getElementById("train-modal").textContent`)), "panne réparée : détectée");
   ev(`Docs.open()`); ok(ev(`document.querySelectorAll("#docs-modal a").length`) >= 6, "documentation des appareils : liens vers les manuels");
+  // 9. pose d'une puce à la main : toujours sur de vrais trous, jamais par-dessus une autre puce
+  const clickH = id => w.document.querySelector(`.h-target[data-id="${id}"]`).dispatchEvent(new w.MouseEvent("click", { bubbles: true }));
+  const allPinsOnBoard = () => ev(`state.placedChips.every(ch => { for (let p = 1; p <= CHIPS_LIB[ch.modele].dip; p++) { const h = HOLE_MAP.get(Engine.pinHole(ch, p, CHIPS_LIB)); if (!h || h.t !== "strip") return false; } return true; })`);
+  ev(`Lesson.load("tp1-B1-pont-diviseur"); state.placedChips = []; renderPlacedElements(); state.tool = "chip"; state.chipVal = "74LS00"; state.armedRef = null`);
+  clickH("T1j3");   // trop bas : la puce sortirait de la plaque
+  ok(ev(`state.placedChips.length`) === 1 && allPinsOnBoard(), "puce posée trop bas : calée dans la plaque, toutes les broches sur de vrais trous");
+  ok(ev(`state.placedChips[0].rangee_broche1`) === 7, "74LS00 cliquée rangée 3 : broche 1 ramenée en rangée 7 (7 rangées de haut)");
+  ok(ev(`Engine.pinHole(state.placedChips[0], 7, CHIPS_LIB)`) === "T1j1" && ev(`Engine.pinHole(state.placedChips[0], 8, CHIPS_LIB)`) === "T1a1", "GND (broche 7) en T1j1 et broche 8 en T1a1 : de part et d'autre de la fente");
+  ev(`state.chipVal = "TL081"`); clickH("T1j5");   // recouvre U1 (rangées 1 à 7)
+  ok(ev(`state.placedChips.length`) === 1, "puce par-dessus une autre : refusée");
+  ok(/chevaucherait U1/.test(ev(`document.getElementById("active-pointer-info").textContent`)), "refus expliqué à l'écran");
+  clickH("T1j20");
+  ok(ev(`state.placedChips.length`) === 2 && allPinsOnBoard(), "TL081 posée plus haut : acceptée, broches sur de vrais trous");
+  ev(`state.chipVal = "74LS00"`); clickH("T1j63");
+  ok(ev(`state.placedChips.every(c => c.rangee_broche1 <= 63)`) && allPinsOnBoard(), "puce cliquée tout en haut de la plaque : reste dans la plaque");
+  // 10. câbles d'appareils : un clic ne crée rien, deux clics en créent un ; double-clic = décrocher pour déplacer
+  const rects = { "gbf.out1": [650, 200], "BNC1": [470, 450], "BNC2": [530, 450], "scope.ch1": [400, 200], "psu.ch2_plus": [800, 210], "VC": [590, 450] };
+  w.Element.prototype.getBoundingClientRect = function () {
+    if (this.id === "lv-centre") return { left: 0, top: 0, width: 1000, height: 800, right: 1000, bottom: 800 };
+    const p = rects[(this.dataset && this.dataset.port) || (this.id || "").replace(/^anchor-/, "")];
+    return p ? { left: p[0] - 4, top: p[1] - 4, width: 8, height: 8, right: p[0] + 4, bottom: p[1] + 4 } : { left: 0, top: 0, width: 0, height: 0, right: 0, bottom: 0 };
+  };
+  const dbl = (x, y, el) => (el || w.document.getElementById("lv-centre")).dispatchEvent(new w.MouseEvent("dblclick", { bubbles: true, clientX: x, clientY: y }));
+  const cabs = () => ev(`state.placedCables.map(c => c.id + ":" + c.de + ">" + c.vers + ":" + c.couleur).join(" ")`);
+  ev(`Lesson.load("tp2-B1-inverseur"); state.tool = "wire"; Cables.cancel()`);
+  ev(`Cables.clickPort("gbf.out1")`);
+  ok(ev(`state.placedCables.length`) === 0 && ev(`state.cableFirst`) === "gbf.out1" && ev(`state.tool`) === "cable", "câble : un seul clic sur une prise n'en crée aucun (il arme seulement)");
+  ev(`Cables.pickHole("BNC1.core")`);
+  ok(ev(`state.placedCables.length`) === 1 && ev(`state.cableFirst`) === null, "câble : le 2e clic crée UN câble");
+  const before = cabs();
+  dbl(300, 600);   // double-clic dans le vide
+  ok(cabs() === before && ev(`state.cableFirst`) === null, "double-clic dans le vide : rien ne bouge");
+  dbl(471, 440);   // près du bout BNC 1
+  ok(ev(`state.placedCables.length`) === 0 && ev(`state.cableFirst`) === "gbf.out1", "double-clic sur le câble : bout BNC 1 décroché, bout GBF reste armé");
+  ok(/décroché/.test(ev(`document.getElementById("cable-msg").textContent`)), "message : « décroché … clique la nouvelle prise »");
+  ev(`Cables.pickHole("BNC2.core")`);
+  ok(cabs() === "A:gbf.out1>BNC2:jaune", "déplacé vers BNC 2 : même lettre A, même couleur, un seul câble (" + cabs() + ")");
+  dbl(650, 215);   // près du bout GBF
+  ok(ev(`state.cableFirst`) === "BNC2" && ev(`state.placedCables.length`) === 0, "double-clic près du GBF : c'est le bout GBF qui se décroche");
+  ev(`Cables.pickHole("BNC2.core")`);   // reclic sur le bout resté armé
+  ok(cabs() === "A:gbf.out1>BNC2:jaune", "reclic sur le bout armé : le câble revient identique");
+  dbl(531, 440);
+  w.document.dispatchEvent(new w.KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+  ok(cabs() === "A:gbf.out1>BNC2:jaune" && ev(`state.cableFirst`) === null, "Échap pendant un déplacement : le câble est remis");
+  dbl(531, 440); ev(`Cables.clickPort("psu.ch2_plus")`);   // BNC ↔ banane : refusé
+  ok(cabs() === "A:gbf.out1>BNC2:jaune" && ev(`state.cableFirst`) === null, "déplacement vers une prise incompatible : refusé, le câble d'origine est remis");
+  ev(`Cables.clickPort("scope.ch1"); Cables.pickHole("BNC1.core")`);   // 2e câble B
+  ok(ev(`state.placedCables.length`) === 2, "2e câble posé (B)");
+  dbl(531, 440); ev(`Cables.pickHole("BNC1.core")`);   // BNC 1 est déjà pris par B (1 seul câble par BNC)
+  ok(ev(`state.placedCables.length`) === 2 && /un câble/.test(ev(`document.getElementById("cable-msg").textContent`)), "déplacement vers une BNC déjà prise : refusé, 2 câbles conservés");
+  ev(`state.tool = "delete"`); const n2 = cabs(); dbl(531, 440);
+  ok(cabs() === n2 && ev(`state.cableFirst`) === null, "gomme active : le double-clic ne décroche pas");
+  ev(`state.tool = "cable"`); dbl(531, 440); ok(ev(`state.cableFirst`) !== null, "(un câble est décroché)");
+  ev(`Lesson.load("tp2-A-suiveur")`);
+  ok(ev(`state.placedCables.length`) === 0 && ev(`state.cableFirst`) === null, "changer de montage pendant un déplacement : aucun ancien câble ne réapparaît");
   ok(errors.length === 0, "aucune erreur JavaScript pendant le test" + (errors.length ? " : " + errors.join(" | ") : ""));
   console.log(fails ? `\n${fails} ÉCHEC(S)` : "\nTOUS LES TESTS D'INTERFACE PASSENT");
   process.exit(fails ? 1 : 0);

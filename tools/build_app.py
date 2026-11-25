@@ -27,6 +27,7 @@ def main():
     html = (APP / "index.html").read_text(encoding="utf-8")
     html = html.replace("/*@@CSS@@*/", css).replace("<!--@@BOARD_SVG@@-->", (APP / "partials/board_svg.html").read_text(encoding="utf-8")).replace("/*@@JS@@*/", js)
     out = ROOT / "out" / "labdec_app.html"
+    out.parent.mkdir(exist_ok=True)   # out/ n'existe pas dans un clone neuf
     out.write_text(html, encoding="utf-8")
     print("écrit", out, out.stat().st_size // 1024, "Ko")
 

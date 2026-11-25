@@ -66,13 +66,19 @@ function setupBoardInteractions() {
       const rowMatch = hid.match(/\d+$/);
       if (!rowMatch) return;
       const cref = (state.armedRef && /^U/.test(state.armedRef)) ? state.armedRef : nextName("U", state.placedChips, "ref");
-      state.placedChips = state.placedChips.filter(c => c.ref !== cref).concat([{
-        ref: cref,
-        modele: state.chipVal,
-        bloc: blk,
-        rangee_broche1: parseInt(rowMatch[0], 10),
-        encoche: "haut"
-      }]);
+      const spec = CHIPS_LIB[state.chipVal]; if (!spec) return;
+      // La puce enjambe la fente (broches 1..n/2 en colonne j, le reste en colonne a) : toutes ses broches doivent tomber sur des trous réels.
+      // rangée de la broche 1 = rangée cliquée, ramenée dans la plaque (le bas de la puce occupe la rangée r1 − n/2 + 1 ≥ 1).
+      const half = Math.floor(spec.dip / 2);
+      let rowMax = 0; while (HOLE_MAP.has(`${blk}j${rowMax + 1}`)) rowMax++;
+      const asked = parseInt(rowMatch[0], 10), r1 = Math.min(rowMax, Math.max(half, asked));
+      const cand = { ref: cref, modele: state.chipVal, bloc: blk, rangee_broche1: r1, encoche: "haut" };
+      const pinsOf = ch => { const s = CHIPS_LIB[ch.modele], a = []; for (let p = 1; s && p <= s.dip; p++) a.push(Engine.pinHole(ch, p, CHIPS_LIB)); return a; };
+      const mine = new Set(pinsOf(cand));
+      const clash = state.placedChips.find(c => c.ref !== cref && pinsOf(c).some(x => mine.has(x)));
+      if (clash) { pointerInfo.textContent = `⚠ ${state.chipVal} non posée : elle chevaucherait ${clash.ref} (mêmes trous). Choisis d'autres rangées.`; return; }
+      state.placedChips = state.placedChips.filter(c => c.ref !== cref).concat([cand]);
+      if (r1 !== asked) pointerInfo.textContent = `ℹ ${state.chipVal} calée dans la plaque : broche 1 en rangée ${r1} (cliqué : ${asked}).`;
       state.armedRef = null;
       renderPlacedElements();
       resetSel();

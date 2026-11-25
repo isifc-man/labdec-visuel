@@ -31,7 +31,13 @@ const Cables = (() => {
     if (state.cableFirst && isDev(state.cableFirst)) document.querySelectorAll(`.it-port[data-port="${state.cableFirst}"]`).forEach(p => p.classList.add("armedcable"));
     redraw();
   }
-  function cancel() { state.cableFirst = null; mark(); say(""); }
+  // Câble décroché par un double-clic pour être déplacé : on le remet tel quel si le déplacement est annulé ou refusé.
+  let _moved = null;   // { c: câble d'origine, i: sa position, list: le tableau d'où on l'a sorti }
+  function restore() {
+    if (_moved && _moved.list === state.placedCables) state.placedCables.splice(Math.min(_moved.i, state.placedCables.length), 0, _moved.c);
+    _moved = null;
+  }
+  function cancel() { const had = !!_moved; restore(); state.cableFirst = null; mark(); say(""); if (had) refreshAll(); }
 
   // Une extrémité vient d'être cliquée (prise d'appareil ou douille de la plaque)
   function pick(end) {
@@ -44,19 +50,22 @@ const Cables = (() => {
     }
     const a = state.cableFirst, b = end;
     state.cableFirst = null;
-    if (a === b) { mark(); say(""); return; }
-    if (!isDev(a) && !isDev(b)) { mark(); say("Deux douilles de la plaque ne se relient pas par un câble : utilise un fil sur la plaque.", "warn"); return; }
-    if (kindOf(a) !== kindOf(b)) { mark(); say(`Un câble BNC ne se branche pas sur une douille banane (${label(a)} / ${label(b)}).`, "warn"); return; }
-    if (state.placedCables.some(c => sameEnds(c.de, c.vers, a, b))) { mark(); say("Ce câble existe déjà.", "warn"); return; }
+    const refuse = txt => { const had = !!_moved; restore(); mark(); say(txt, "warn"); if (had) refreshAll(); };   // un déplacement refusé remet le câble d'origine
+    if (a === b) { const had = !!_moved; restore(); mark(); say(""); if (had) refreshAll(); return; }
+    if (!isDev(a) && !isDev(b)) { refuse("Deux douilles de la plaque ne se relient pas par un câble : utilise un fil sur la plaque."); return; }
+    if (kindOf(a) !== kindOf(b)) { refuse(`Un câble BNC ne se branche pas sur une douille banane (${label(a)} / ${label(b)}).`); return; }
+    if (state.placedCables.some(c => sameEnds(c.de, c.vers, a, b))) { refuse("Ce câble existe déjà."); return; }
     for (const e of [a, b]) {
       // sortie 1 du GBF : adaptateur en T (2 BNC) ; douilles banane : fiches empilables (2) ; autre BNC : 1 seul câble
       const lim = e === "gbf.out1" || kindOf(e) === "banane" ? 2 : 1;
-      if (count(e) >= lim) { mark(); say(`${label(e)} a déjà ${lim === 2 ? "deux câbles (c'est plein)" : "un câble"} : retire-en un avec la gomme.`, "warn"); return; }
+      if (count(e) >= lim) { refuse(`${label(e)} a déjà ${lim === 2 ? "deux câbles (c'est plein)" : "un câble"} : retire-en un avec la gomme.`); return; }
     }
-    const id = nextId(), kind = kindOf(a);
+    const old = _moved && _moved.list === state.placedCables ? _moved.c : null;   // câble déplacé : il garde sa lettre, sa couleur et sa place dans la liste
+    const id = old ? old.id : nextId(), kind = kindOf(a);
     const nc = { id, de: a, vers: b, nom: kind === "bnc" ? "câble BNC–BNC" : "câble banane" };
-    nc.couleur = state.cableColorSet ? state.wireColor : defaultColor(nc);
-    state.placedCables.push(nc);
+    nc.couleur = old ? old.couleur : state.cableColorSet ? state.wireColor : defaultColor(nc);
+    if (old) state.placedCables.splice(Math.min(_moved.i, state.placedCables.length), 0, nc); else state.placedCables.push(nc);
+    _moved = null;
     mark();
     say(`Câble ${id} posé : ${label(a)} ↔ ${label(b)}.${(a === "gbf.out1" || b === "gbf.out1") && count("gbf.out1") === 2 ? " (adaptateur en T sur la sortie du GBF)" : ""}`, "ok");
     refreshAll();
@@ -138,10 +147,46 @@ const Cables = (() => {
   }
   function clickConn(name) { if (state.tool === "delete") { if (removeAt(name)) say("Câble retiré.", "ok"); else say("Aucun câble sur cette douille.", "warn"); } else pick(name); }
 
+  // ---- déplacer un câble déjà posé : double-clic dessus ----
+  // La couche des câbles laisse passer les clics (sinon elle masquerait les prises) : on cherche donc le câble le plus proche du clic par le calcul.
+  // Le bout le plus proche du clic est décroché ; l'autre bout reste armé : un clic sur la nouvelle prise rebranche le câble (même lettre, même couleur).
+  function liftAt(clientX, clientY) {
+    const host = document.getElementById("lv-centre"); if (!host || state.tool === "delete") return false;
+    restore();   // un autre câble était déjà décroché : on le remet avant de chercher
+    const r = host.getBoundingClientRect(), p = { x: clientX - r.left + host.scrollLeft, y: clientY - r.top + host.scrollTop };
+    let best = null;
+    state.placedCables.forEach((c, i) => {
+      const a = endPt(c.de), b = endPt(c.vers); if (!a || !b) return;
+      const dy = Math.abs(b.y - a.y), d = Math.max(60, dy * 0.45), k = dy < 50 ? 1.6 : 1;
+      const c1 = { x: a.x, y: a.y + d * k }, c2 = { x: b.x, y: b.y - (dy < 50 ? -d * k : d) };
+      for (let t = 0; t <= 1.0001; t += 0.02) {
+        const u = 1 - t, x = u * u * u * a.x + 3 * u * u * t * c1.x + 3 * u * t * t * c2.x + t * t * t * b.x, y = u * u * u * a.y + 3 * u * u * t * c1.y + 3 * u * t * t * c2.y + t * t * t * b.y;
+        const dist = Math.hypot(x - p.x, y - p.y);
+        if (dist < 14 && (!best || dist < best.dist)) best = { i, dist, a, b };
+      }
+    });
+    if (!best) return false;
+    const c = state.placedCables[best.i];
+    const nearA = Math.hypot(p.x - best.a.x, p.y - best.a.y) <= Math.hypot(p.x - best.b.x, p.y - best.b.y);
+    state.placedCables.splice(best.i, 1);
+    _moved = { c, i: best.i, list: state.placedCables };
+    if (state.tool !== "cable") { state.tool = "cable"; state.armedRef = null; document.querySelectorAll(".t-btn").forEach(b => b.classList.toggle("active", b.dataset.tool === "cable")); if (typeof syncToolbar === "function") syncToolbar(); }
+    state.cableFirst = nearA ? c.vers : c.de;
+    mark(); refreshAll();
+    say(`Câble ${c.id} décroché côté ${label(nearA ? c.de : c.vers)} : clique la nouvelle prise (Échap pour le remettre).`);
+    return true;
+  }
+
   function init() {
     document.addEventListener("keydown", e => { if (e.key === "Escape" && state.cableFirst) cancel(); });
+    document.getElementById("lv-centre").addEventListener("dblclick", e => {
+      if (e.target.closest && e.target.closest(".it-port, .conn-hit, .h-target, .lead-hit, button, input, select, textarea")) return;
+      if (!liftAt(e.clientX, e.clientY)) return;
+      e.preventDefault();
+      if (state.firstHole) { state.firstHole = null; ["svg-sel", "svg-rubberband"].forEach(id => { const el = document.getElementById(id); if (el) el.style.display = "none"; }); }   // le 1er clic du double-clic a pu armer un fil
+    });
     document.getElementById("lv-centre").addEventListener("pointermove", trackMouse);
     window.addEventListener("resize", redraw);
   }
-  return { init, pick, pickHole, clickPort, clickConn, redraw, defaultColor, removeAt, removeIndex, cancel, render, sameEnds, label, isDev };
+  return { init, liftAt, pick, pickHole, clickPort, clickConn, redraw, defaultColor, removeAt, removeIndex, cancel, render, sameEnds, label, isDev };
 })();
